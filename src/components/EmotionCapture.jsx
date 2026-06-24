@@ -1,117 +1,83 @@
-// ===================================================================
-// EmotionCapture — Source A (facial & emotion analysis).
-//
-// Uses @vladmandic/face-api (the MAINTAINED fork) to read the 7 facial
-// expressions from the webcam, in the browser, in real time. Nothing is
-// uploaded — all inference is local (privacy by design, Spec Section 8).
-//
-// Model weights are loaded from the package's CDN so we don't have to
-// ship binary files in the repo. Two tiny models are enough:
-//   - tinyFaceDetector  (finds the face + a detection confidence)
-//   - faceExpressionNet (the 7 expression probabilities)
-// ===================================================================
 import { useEffect, useRef, useState } from "react";
-import * as faceapi from "@vladmandic/face-api";
+import { useT } from "../i18n.js";
 
 const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model/";
-const SAMPLE_MS = 700; // how often we read an expression
+const SAMPLE_MS = 900;
 
-export default function EmotionCapture({ onComplete }) {
+export default function EmotionCapture({ onComplete, onSkip }) {
+  const t = useT();
   const videoRef = useRef(null);
-  const timelineRef = useRef([]);       // running list of dominant emotions
-  const confidencesRef = useRef([]);    // running list of detection scores
-  const [status, setStatus] = useState("Loading face model…");
-  const [live, setLive] = useState({ emotion: "—", confidence: 0 });
-  const [running, setRunning] = useState(false);
+  const timelineRef = useRef([]);
+  const confidencesRef = useRef([]);
+  const [camState, setCamState] = useState("loading"); // loading | running | error
+  const [live, setLive] = useState(null);
+  const [ready, setReady] = useState(false);
 
-  // 1) Load models + start the camera once on mount.
   useEffect(() => {
-    let stream;
-    let interval;
+    let stream, interval, cancelled = false;
     (async () => {
       try {
+        const faceapi = await import("@vladmandic/face-api");
         await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
         await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
-        setStatus("Requesting camera…");
+        if (cancelled) return;
         stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 240 } });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-        setStatus("Reading expressions… look at the camera naturally.");
-        setRunning(true);
-
-        // 2) Every SAMPLE_MS, detect the dominant expression.
+        if (cancelled) { stream.getTracks().forEach((x) => x.stop()); return; }
+        if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
+        setCamState("running");
         interval = setInterval(async () => {
           if (!videoRef.current) return;
-          const det = await faceapi
-            .detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions())
-            .withFaceExpressions();
-
+          const det = await faceapi.detectSingleFace(videoRef.current, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
           if (det?.expressions) {
-            // expressions = {neutral, happy, sad, angry, fearful, disgusted, surprised}
             const [emotion] = Object.entries(det.expressions).sort((a, b) => b[1] - a[1])[0];
             timelineRef.current.push(emotion);
             confidencesRef.current.push(det.detection.score);
-            setLive({ emotion, confidence: det.detection.score });
+            setLive((prev) => (prev?.emotion === emotion ? prev : { emotion, confidence: det.detection.score }));
+            if (timelineRef.current.length >= 3) setReady(true);
           }
         }, SAMPLE_MS);
-      } catch (err) {
-        // Camera denied / unavailable -> we degrade gracefully. The engine
-        // already handles "no facial data" by contributing 0 and lowering confidence.
-        setStatus("Camera unavailable — you can continue without facial data.");
+      } catch {
+        if (!cancelled) setCamState("error"); // one stable state - no flicker
       }
     })();
+    return () => { cancelled = true; clearInterval(interval); stream?.getTracks().forEach((x) => x.stop()); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run ONCE
 
-    return () => {
-      clearInterval(interval);
-      stream?.getTracks().forEach((t) => t.stop()); // release the camera
-    };
-  }, []);
-
-  // 3) Build the Source-A object the engine expects, and hand it to the parent.
   function finish() {
-    const timeline = timelineRef.current;
-    const confs = confidencesRef.current;
-    const faceDetected = timeline.length > 0;
-
-    // dominant emotion across the whole session = most frequent one
+    const timeline = timelineRef.current, confs = confidencesRef.current;
     const counts = timeline.reduce((m, e) => ((m[e] = (m[e] || 0) + 1), m), {});
     const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "neutral";
     const avgConf = confs.length ? confs.reduce((s, c) => s + c, 0) / confs.length : 0;
-
-    onComplete({
-      dominant_emotion: dominant,
-      face_detected: faceDetected,
-      confidence: Number(avgConf.toFixed(2)),
-      session_duration_seconds: Math.round((timeline.length * SAMPLE_MS) / 1000),
-      // keep the timeline compact (last 8 reads) so the numbing-pattern check is meaningful
-      emotion_timeline: timeline.slice(-8),
-    });
-  }
-
-  function skip() {
-    onComplete({ face_detected: false, dominant_emotion: "n/a", confidence: 0, emotion_timeline: [] });
+    onComplete({ dominant_emotion: dominant, face_detected: timeline.length > 0, confidence: Number(avgConf.toFixed(2)), session_duration_seconds: Math.round((timeline.length * SAMPLE_MS) / 1000), emotion_timeline: timeline.slice(-8) });
   }
 
   return (
-    <section className="panel">
-      <h2>Step 1 · Emotion reading <span className="muted small">(optional, local only)</span></h2>
-      <p className="muted small">{status}</p>
-      <video ref={videoRef} muted playsInline width={320} height={240} className="video" />
-      {running && (
-        <p className="muted small">
-          Live: <strong>{live.emotion}</strong> · confidence {(live.confidence * 100).toFixed(0)}%
-          · samples {timelineRef.current.length}
-        </p>
+    <section className="card">
+      <div className="eyebrow">{t("cam_eyebrow")}</div>
+      <h2>{t("cam_title")}</h2>
+
+      {camState === "error" ? (
+        <>
+          <div className="callout warm"><span className="small">No camera access - that's completely fine. The check-in works just as well without it.</span></div>
+          <button className="btn full" style={{ marginTop: 12 }} onClick={onSkip}>{t("cam_skip")} &rarr;</button>
+        </>
+      ) : (
+        <>
+          <p className="muted small">{camState === "loading" ? "Loading the on-device model..." : t("cam_hint")}</p>
+          <div className="cam-wrap">
+            <video ref={videoRef} muted playsInline />
+            {camState === "running" && (
+              <div className="cam-pill"><span className="cam-dot" />{live ? `${live.emotion} / ${(live.confidence * 100).toFixed(0)}%` : "reading"}</div>
+            )}
+          </div>
+          {camState === "running" && <p className="tiny muted" style={{ textAlign: "center" }}>{ready ? t("cam_ready") : t("cam_gather")}</p>}
+          <div className="row" style={{ marginTop: 8 }}>
+            <button className="btn" onClick={finish} disabled={!ready}>{t("cam_continue")}</button>
+            <button className="btn soft" onClick={onSkip}>{t("cam_skip")}</button>
+          </div>
+        </>
       )}
-      <div className="row">
-        <button className="btn" onClick={finish} disabled={!running}>Use this reading →</button>
-        <button className="btn ghost" onClick={skip}>Skip (no camera)</button>
-      </div>
-      <p className="muted small">
-        Video never leaves this device. Only summary emotion data is passed to the assessment.
-      </p>
     </section>
   );
 }

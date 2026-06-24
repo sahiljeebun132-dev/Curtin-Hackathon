@@ -1,70 +1,69 @@
-// ===================================================================
-// App — orchestrates the 3-step flow:
-//   1. EmotionCapture (Source A)  ->  2. Questionnaire (Source B)
-//   ->  runAriaAssessment() + attachSummaries()  ->  3. AssessmentResult
-//
-// The engine call is deterministic; attachSummaries runs WITHOUT an LLM
-// here (llmFn = null) so the deployed POC needs no API key. To enable the
-// LLM rewording, pass a function as the 2nd arg of attachSummaries.
-// ===================================================================
 import { useState } from "react";
-import EmotionCapture from "./components/EmotionCapture.jsx";
-import Questionnaire from "./components/Questionnaire.jsx";
-import AssessmentResult from "./components/AssessmentResult.jsx";
-import { runAriaAssessment } from "./aria/engine.js";
-import { attachSummaries } from "./aria/summaries.js";
+import { useT, useLang, LANGS } from "./i18n.js";
+import AssessmentFlow from "./components/AssessmentFlow.jsx";
+import Medication from "./components/Medication.jsx";
+import Support from "./components/Support.jsx";
+import Progress from "./components/Progress.jsx";
+import Privacy from "./components/Privacy.jsx";
+import SosButton from "./components/SosButton.jsx";
+
+function Brand() {
+  const t = useT();
+  return (
+    <div className="brand">
+      <div className="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 6c-2.5 4.5-9.5 9-9.5 9z" />
+        </svg>
+      </div>
+      <div>
+        <div className="brand-name">VELA</div>
+        <div className="brand-sub">{t("tagline")}</div>
+      </div>
+    </div>
+  );
+}
+
+function LangSwitch() {
+  const { lang, setLang } = useLang();
+  return (
+    <div className="lang-switch">
+      {Object.entries(LANGS).map(([k, label]) => (
+        <button key={k} className={lang === k ? "on" : ""} onClick={() => setLang(k)}>{label}</button>
+      ))}
+    </div>
+  );
+}
 
 export default function App() {
-  const [step, setStep] = useState("intro");
-  const [facial, setFacial] = useState(null);
-  const [result, setResult] = useState(null);
-
-  async function handleQuestionnaire(formData) {
-    const assessment = runAriaAssessment({ ...formData, facial });
-    const withSummaries = await attachSummaries(assessment, null); // no LLM in POC
-    setResult(withSummaries);
-    setStep("result");
-  }
-
-  function restart() {
-    setFacial(null);
-    setResult(null);
-    setStep("intro");
-  }
-
+  const t = useT();
+  const [tab, setTab] = useState("checkin");
+  const TABS = [
+    ["checkin", t("nav_checkin")], ["meds", t("nav_meds")],
+    ["support", t("nav_support")], ["progress", t("nav_progress")], ["privacy", t("nav_privacy")],
+  ];
   return (
-    <main className="container">
-      <header>
-        <h1>VELA · ARIA <span className="tag">v1.0 POC</span></h1>
-        <p className="muted small">
-          Vigilance &amp; Early-intervention Lifeline Assistant — an AI-assisted risk flag,
-          not a diagnosis. Every result is human-reviewed. Game of Code 2026, Curtin Mauritius.
-        </p>
-      </header>
+    <div className="shell">
+      <div className="topbar"><Brand /><LangSwitch /></div>
+      <div className="tabs">
+        {TABS.map(([k, label]) => (
+          <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{label}</button>
+        ))}
+      </div>
 
-      {step === "intro" && (
-        <section className="panel">
-          <h2>Consent &amp; purpose</h2>
-          <p className="muted">
-            This proof-of-concept supports trained reviewers in spotting early risk indicators.
-            It does not diagnose, and it never acts automatically. Facial analysis is optional
-            and runs entirely on this device. Data is session-only and not stored.
-          </p>
-          <button className="btn" onClick={() => setStep("capture")}>Begin →</button>
-        </section>
-      )}
+      <div key={tab} className="fade-key">
+        {tab === "checkin" && <AssessmentFlow />}
+        {tab === "meds" && <Medication />}
+        {tab === "support" && <Support />}
+        {tab === "progress" && <Progress />}
+        {tab === "privacy" && <Privacy />}
+      </div>
 
-      {step === "capture" && (
-        <EmotionCapture onComplete={(f) => { setFacial(f); setStep("questionnaire"); }} />
-      )}
-
-      {step === "questionnaire" && (
-        <Questionnaire onSubmit={handleQuestionnaire} />
-      )}
-
-      {step === "result" && (
-        <AssessmentResult result={result} onRestart={restart} />
-      )}
-    </main>
+      <p className="footer-note" style={{ textAlign: "center", marginTop: 26 }}>
+        VELA / ARIA v1.0 - an AI-assisted support flag, not a clinical diagnosis. Reviewed by a qualified
+        person before any action. Built for Game of Code 2026, Curtin Mauritius.
+      </p>
+      <SosButton />
+    </div>
   );
 }

@@ -51,8 +51,11 @@ function facialContribution(facial) {
 function emotionalScore(answers, facial) {
   const ids = BEHAVIOURAL_QUESTIONS.filter((q) => q.score === "emotional").map((q) => q.id);
   const raw = ids.reduce((s, id) => s + ans(answers, id), 0);
-  const questionnaire = normalise(raw, RAW_MAX.emotionalQuestionnaire, 15); // 0-15
   const face = facialContribution(facial); // 0-10
+  const hasFace = !!(facial && facial.face_detected);
+  // Without facial data the questionnaire alone can reach the full 25, so
+  // skipping the camera never lowers the emotional ceiling.
+  const questionnaire = normalise(raw, RAW_MAX.emotionalQuestionnaire, hasFace ? 15 : 25);
   return { total: clamp(questionnaire + face, 0, 25), face };
 }
 
@@ -244,7 +247,10 @@ export function runAriaAssessment(input = {}) {
 
   // --- crisis override (Spec Section 4) ---
   const crisis = detectCrisis(input, finalScore, facial);
-  if (crisis.crisis_flag) band = RISK_BANDS.find((b) => b.level === "Crisis");
+  if (crisis.crisis_flag) {
+    band = RISK_BANDS.find((b) => b.level === "Crisis");
+    finalScore = Math.max(finalScore, 80); // score must reflect a crisis, not read like a High
+  }
 
   // --- safeguarding (children + High/Crisis) ---
   const safeguarding_flag =

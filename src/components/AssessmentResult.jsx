@@ -1,84 +1,110 @@
-// ===================================================================
-// AssessmentResult — renders the ARIA JSON output for a human reviewer.
-// It only DISPLAYS what the engine produced; it computes nothing itself.
-// ===================================================================
-const LEVEL_COLOR = { Low: "var(--low)", Medium: "var(--medium)", High: "var(--high)", Crisis: "var(--crisis)" };
+import { useEffect, useState } from "react";
+import { useT } from "../i18n.js";
 
-function Bar({ label, value, max }) {
+const LVL = {
+  Low: { c: "#1f9d57", soft: "#e3f5ea", word: "Low concern" },
+  Medium: { c: "#c98510", soft: "#fbf0d9", word: "Worth a chat" },
+  High: { c: "#e0671f", soft: "#fcebdd", word: "Priority support" },
+  Crisis: { c: "#d83a3a", soft: "#fbe4e4", word: "Immediate care" },
+};
+
+function Gauge({ value, color }) {
+  const [n, setN] = useState(0);
+  const R = 56, C = 2 * Math.PI * R;
+  useEffect(() => {
+    let raf, start; const dur = 1100;
+    const tick = (t) => { if (!start) start = t; const p = Math.min((t - start) / dur, 1);
+      setN(Math.round((1 - Math.pow(1 - p, 3)) * value)); if (p < 1) raf = requestAnimationFrame(tick); };
+    raf = requestAnimationFrame(tick); return () => cancelAnimationFrame(raf);
+  }, [value]);
+  const offset = C - (n / 100) * C;
   return (
-    <div className="bar">
-      <span className="bar-label">{label}</span>
-      <div className="bar-track">
-        <div className="bar-fill" style={{ width: `${(value / max) * 100}%` }} />
-      </div>
-      <span className="bar-val">{value}/{max}</span>
+    <div className="gauge">
+      <svg width="132" height="132" viewBox="0 0 132 132">
+        <circle cx="66" cy="66" r={R} fill="none" stroke="#eef3f2" strokeWidth="11" />
+        <circle cx="66" cy="66" r={R} fill="none" stroke={color} strokeWidth="11" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={offset} style={{ transition: "stroke-dashoffset .1s linear" }} />
+      </svg>
+      <div className="gauge-num"><b style={{ color }}>{n}</b><span>/100</span></div>
     </div>
   );
 }
 
+function Bar({ label, value, max, delay }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setW((value / max) * 100), delay); return () => clearTimeout(t); }, [value, max, delay]);
+  return (<div className="bar"><span className="bar-label">{label}</span><div className="bar-track"><div className="bar-fill" style={{ width: w + "%" }} /></div><span className="bar-val">{value}/{max}</span></div>);
+}
+
 export default function AssessmentResult({ result, onRestart }) {
+  const t = useT();
   if (!result) return null;
   const r = result;
   const lvl = r.risk_profile.overall_risk_level;
+  const tt = LVL[lvl] || LVL.Low;
   const b = r.risk_profile.score_breakdown;
+  const fastTrack = lvl === "High" || lvl === "Crisis";
+  const clinician = r._clinician || [];
 
   return (
-    <section className="panel">
-      <div className="result-head" style={{ borderColor: LEVEL_COLOR[lvl] }}>
-        <div>
-          <div className="muted small">{r.assessment_id} · {new Date(r.timestamp).toLocaleString()}</div>
-          <h2 style={{ color: LEVEL_COLOR[lvl], margin: "4px 0" }}>{lvl} · {r.risk_profile.risk_score}/100</h2>
-          <div className="muted small">Confidence: {r.risk_profile.confidence}</div>
+    <section className="card">
+      <div className="result-hero" style={{ background: tt.soft }}>
+        <Gauge value={r.risk_profile.risk_score} color={tt.c} />
+        <div style={{ flex: 1, minWidth: 180 }}>
+          <span className="level-pill" style={{ background: "#fff", color: tt.c }}>{tt.word}</span>
+          <h2 style={{ marginTop: 10 }}>{r.intervention.recommended_action}</h2>
+          <p className="muted small">{r.assessment_id} / {r.risk_profile.confidence}</p>
         </div>
       </div>
 
-      {r.flags.crisis_flag && (
-        <div className="crisis-box">
-          <strong>⚠ CRISIS</strong>
-          <p>{r.crisis_message}</p>
-        </div>
-      )}
+      {r.flags.crisis_flag && (<div className="crisis-banner"><strong>Please act now</strong><p className="small" style={{ marginBottom: 0 }}>{r.crisis_message}</p></div>)}
 
-      <h3>Score breakdown</h3>
-      <Bar label="Behavioural" value={b.behavioural} max={25} />
-      <Bar label="Emotional" value={b.emotional} max={25} />
-      <Bar label="Physical" value={b.physical} max={25} />
-      <Bar label="Environmental" value={b.environmental} max={25} />
-      <div className="muted small">− Protective deduction: {b.protective_deduction} · + Substance modifier: {b.substance_modifier}</div>
+      <h3>{t("res_saying")}</h3>
+      <p className="lead" style={{ fontSize: 15.5 }}>{r.plain_language_summary}</p>
+      {r.creole_summary && (<div className="callout warm"><strong className="small">An Kreol</strong><p className="small" style={{ margin: "4px 0 0" }}>{r.creole_summary}</p></div>)}
 
-      <h3>Flags</h3>
-      <div className="flags">
-        {Object.entries(r.flags).map(([k, v]) => (
-          <span key={k} className={"flag" + (v ? " flag-on" : "")}>{k.replace(/_/g, " ")}</span>
-        ))}
-      </div>
-
-      <h3>Why this score</h3>
-      <p>{r.explainability.reasoning_summary}</p>
-      <p className="muted small">Top factor: {r.explainability.top_contributing_factor} · Uncertainty: {r.explainability.uncertainty_note}</p>
-
-      <h3>Recovery readiness</h3>
-      <p><strong>{r.recovery_readiness.stage}</strong> ({r.recovery_readiness.score}/10)</p>
-      <p className="muted">Opening line: “{r.recovery_readiness.opening_line_for_counsellor}”</p>
-      <p className="muted small">Primary barrier: {r.recovery_readiness.primary_barrier}</p>
-
-      <h3>Recommended action</h3>
-      <p><strong>{r.intervention.recommended_action}</strong> · urgency {r.intervention.urgency}</p>
-      <div className="referral">
-        <strong>{r.intervention.primary_referral.organisation}</strong> — {r.intervention.primary_referral.contact}
+      <h3>{t("res_step")}</h3>
+      {fastTrack && <div className="fasttrack-badge">{t("fasttrack")}</div>}
+      <div className="referral-card">
+        <div className="org">{r.intervention.primary_referral.organisation}</div>
+        <div className="contact">{r.intervention.primary_referral.contact}</div>
         <div className="muted small">{r.intervention.primary_referral.reason}</div>
       </div>
-      <p className="muted small">Stigma-sensitive note: {r.intervention.stigma_sensitive_note}</p>
+      <div className="callout"><span className="small"><strong>For the conversation:</strong> {r.intervention.stigma_sensitive_note}</span></div>
 
-      <h3>Plain-language summary</h3>
-      <p>{r.plain_language_summary}</p>
-      {r.creole_summary && (<><h3>Rezime an Kreol</h3><p>{r.creole_summary}</p></>)}
+      {clinician.length > 0 && (
+        <>
+          <h3>Possible categories to verify</h3>
+          <p className="tiny muted" style={{ marginTop: -6 }}>From observed signs only - for a clinician to confirm. This is NOT a diagnosis or a claim of use.</p>
+          {clinician.map((c) => (<div className="callout" key={c.id}><span className="small"><strong>{c.label}</strong> - {c.hits} observed sign(s) noted</span></div>))}
+        </>
+      )}
 
-      <h3>Fairness audit</h3>
-      <p className="muted small">Bias risk: {r.fairness_audit.bias_risk} — {r.fairness_audit.bias_note}</p>
+      <h3>{t("res_ready")}</h3>
+      <div className="readiness-track"><div className="readiness-fill" style={{ width: (r.recovery_readiness.score * 10) + "%" }} /></div>
+      <p className="small"><strong>{r.recovery_readiness.stage}</strong> - {r.recovery_readiness.score}/10</p>
+      <div className="callout"><span className="small">{r.recovery_readiness.opening_line_for_counsellor}</span></div>
 
-      <footer className="muted small">{r.system_footer}</footer>
-      <button className="btn ghost" onClick={onRestart}>New assessment</button>
+      <h3>{t("res_signals")}</h3>
+      <div className="bars">
+        <Bar label={t("sec_daily")} value={b.behavioural} max={25} delay={120} />
+        <Bar label={t("sec_mood")} value={b.emotional} max={25} delay={220} />
+        <Bar label={t("sec_phys")} value={b.physical} max={25} delay={320} />
+        <Bar label={t("sec_fam")} value={b.environmental} max={25} delay={420} />
+      </div>
+      <p className="tiny muted">Strengths -{b.protective_deduction} / substances +{b.substance_modifier}.</p>
+
+      <h3>{t("res_flags")}</h3>
+      <div className="flags">
+        {Object.entries(r.flags).map(([k, v]) => (<span key={k} className={"flag" + (v ? " on" : "") + (v && /crisis|self_harm/.test(k) ? " crisis" : "")}>{k.replace(/_flag$/, "").replace(/_/g, " ")}</span>))}
+      </div>
+
+      <h3>{t("res_trust")}</h3>
+      <p className="small muted">{r.explainability.reasoning_summary}</p>
+      <p className="tiny muted">{r.fairness_audit.bias_note}</p>
+
+      <div className="divider" />
+      <button className="btn ghost full" onClick={onRestart}>{t("res_new")}</button>
+      <p className="footer-note" style={{ marginTop: 16 }}>{r.system_footer}</p>
     </section>
   );
 }
