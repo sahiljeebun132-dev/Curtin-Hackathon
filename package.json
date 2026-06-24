@@ -1,0 +1,22 @@
+{
+  "name": "vela-aria",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "VELA - Vigilance & Early-intervention Lifeline Assistant. ARIA risk-intelligence proof-of-concept for Game of Code 2026.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:engine": "node src/aria/engine.test.mjs"
+  },
+  "dependencies": {
+    "@vladmandic/face-api": "^1.7.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.11"
+  }
+}
