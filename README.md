@@ -93,9 +93,10 @@ npm run test:engine  # run the deterministic engine tests (15 checks)
 ### As a Patient
 1. **Home** — see your day counter (starts at **Day 1**), today's medication, and an optional **nickname** (anonymous ID; "Forget me" deletes it). You can optionally hash a phone number for de-duplication — the number is never stored.
 2. **Check-in** — Step 1 is an optional **camera read** (tap *Continue* or *Skip the camera*). Step 2 is the **questionnaire** (6–7 short pages with Back/Next and a 🔊 read-aloud button). You get a calm, plain-language **result** with a recommended next step. Tap **🖨 Print / Save PDF** to save it, or **🔊 Read aloud**.
-3. **Medication** — your guardian sets the schedule; you get reminders that **ring** at each dose time (sound + notification) on any tab. Tap **✓ Taken** or **✗ Missed**.
-4. **Link to a guardian** — on Medication, enter the code your guardian gives you to pair (so their schedule reaches you).
-5. **SOS** (floating red button, always visible) — one tap to verified crisis lines, and to your **trusted contact** (add a family member/close person once; then Text or Call them instantly).
+3. **Results** — your most recent check-in is saved here automatically. Leave the page, browse **Support** for other numbers, or even close the app — your latest result is still waiting under this tab, so you never have to redo the test to see it again. It's stored **encrypted on your device only**, and you can **clear** it any time.
+4. **Medication** — your guardian sets the schedule; you get reminders that **ring** at each dose time (sound + notification) on any tab. Tap **✓ Taken** or **✗ Missed**.
+5. **Link to a guardian** — on Medication, enter the code your guardian gives you to pair (so their schedule reaches you).
+6. **SOS** (floating red button, always visible) — one tap to verified crisis lines, and to your **trusted contact** (add a family member/close person once; then Text or Call them instantly).
 
 ### As a Guardian
 1. Enter the staff code, then **Medication**: tap **Generate link code** and share it with the patient's phone.
@@ -107,8 +108,10 @@ npm run test:engine  # run the deterministic engine tests (15 checks)
 2. Pick a person → **Start a check-in for them** (camera skipped, context pre-filled). Finishing **updates their risk level** in the caseload.
 3. **Assistant** tab — ask things like *"who needs attention"*, *"reviews due today"*, *"missed doses"*, *"Roche Bois"*, *"summary"*. Answers are computed locally over anonymised data only.
 
+6. After your result, tap **Talk it through** to chat with the support companion - it helps you find one next step or the right people to call, and escalates to crisis lines if needed.
+
 ### Privacy
-The **Privacy** tab explains what is/isn't collected and has a **Delete all my data on this device** button.
+The **Privacy** tab explains what is/isn't collected, documents the encryption, and has a **Delete all my data on this device** button.
 
 ---
 
@@ -117,12 +120,15 @@ The **Privacy** tab explains what is/isn't collected and has a **Delete all my d
 - **Role-based portal** with staff verification; patients anonymous.
 - **Validated, age-adaptive questionnaire** (CRAFFT / DAST-10 / AUDIT-C) with read-aloud.
 - **Deterministic ARIA engine** → printable result + plain-language & Kreol summaries.
+- **Results tab**: the patient's latest check-in is saved (encrypted, on-device) and reopenable any time — navigating away, switching tabs, or closing the app no longer loses it or forces a redo.
 - **Medication**: guardian-set schedule, device pairing by code, ringing reminders, missed-dose alerts, 7-day adherence chart.
 - **SOS** with verified crisis lines + a savable **trusted contact** (Text/Call).
 - **Support**: real Mauritian organisations + an **anonymous** aggregate area map (never individuals).
 - **Social-worker caseload** (search/sort, seeded check-ins, write-back) + **anonymised assistant**.
 - **Privacy-safe identity** (pseudonym + SHA-256 de-dup), **delete-all** control.
-- **PWA**: installable + offline, with an offline indicator.
+- **PWA**: installable (visible **Install** button) + offline, with an offline indicator.
+- **AI support companion** after the result - a guide (not a therapist) with hard crisis rails, city-based routing, and empathy if the camera read sadness. Runs **locally**; uses a real LLM only if you add an API key.
+- **Encrypted at rest**: every piece of on-device data is encrypted with **AES-256-GCM** using a non-extractable key in IndexedDB.
 
 ---
 
@@ -140,14 +146,14 @@ No diagnosis · human review always required · non-punitive · no national ID �
 ---
 
 ## Tech stack & project structure
-**React 18 + Vite**, **@vladmandic/face-api** (TensorFlow.js, lazy-loaded), **Leaflet + OpenStreetMap**, Web Crypto / Web Audio / Web Speech / Notifications / localStorage, a hand-rolled **service worker** for offline. No backend required for the demo.
+**React 18 + Vite**, **@vladmandic/face-api** (TensorFlow.js, lazy-loaded), **Leaflet + OpenStreetMap**, Web Crypto (**AES-256-GCM at rest** + SHA-256) / Web Audio / Web Speech / Notifications / IndexedDB + localStorage, a hand-rolled network-first **service worker** for offline, and an optional `api/chat` serverless LLM proxy. No backend required for the demo.
 
 ```
 public/      manifest.webmanifest, sw.js, icon.svg      (PWA)
 src/
   aria/      engine.js, constants.js, referrals.js, summaries.js, *.test/verify
   components/ Dashboard, AssessmentFlow, EmotionCapture, Questionnaire,
-              AssessmentResult, Medication, Support, Progress, Privacy,
+              AssessmentResult, Results, Medication, Support, Progress, Privacy,
               Assistant, SosButton, SymptomChecklist
   data/      supportGroups, zones (aggregate), symptoms, caseload
   i18n*.js   EN / FR / Kreol dictionaries
@@ -177,6 +183,7 @@ git add -A && git commit -m "update" && git push
 - **Map is blank** — the map needs internet (OpenStreetMap tiles); the rest of the app still works offline.
 - **Reminders don't ring** — allow notifications when prompted; reminders run while the app is open (a production build would use push for background delivery).
 - **Staff views ask for a code** — that's intended; demo code is **`VELA-STAFF`**.
+- **My result disappeared after I clicked away** — it no longer does. Your latest check-in is saved under the **Results** tab (encrypted, on-device) and stays there until you run a new check-in or clear it, so you can browse Support for other numbers and come back without redoing the test.
 
 ---
 

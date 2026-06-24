@@ -31,10 +31,4 @@ fi
 # 3. Commit + push
 echo "[1/2] Saving and pushing your changes..."
 git add -A
-git commit -m "Deploy $(date '+%Y-%m-%d %H:%M:%S')" || echo "   (nothing new to commit - pushing current state)"
-git push -u origin main
-
-echo ""
-echo "[2/2] Pushed. Vercel will build and deploy automatically."
-echo "   Live dashboard: https://vercel.com/asherrs-projects"
-echo ""
+git commit -m "Deploy $(date '+%Y

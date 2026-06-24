@@ -29,22 +29,4 @@ if errorlevel 1 (
   git remote add origin https://github.com/sahiljeebun132-dev/Curtin-Hackathon.git
 )
 
-REM --- 3. Commit and push -----------------------------------
-echo [1/2] Saving and pushing your changes...
-git add -A
-git commit -m "Deploy %date% %time%" 2>nul || echo    (nothing new to commit - pushing current state)
-git push -u origin main
-if errorlevel 1 (
-  echo.
-  echo  Push failed. Most likely you just need to sign in to GitHub
-  echo  in the window that pops up, then double-click this file again.
-  echo.
-  pause
-  exit /b 1
-)
-
-echo.
-echo [2/2] Pushed. Vercel will build and deploy automatically.
-echo    Live dashboard: https://vercel.com/asherrs-projects
-echo.
-pause
+REM --- 3. Commit and push -----
