@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useT } from "../i18n.js";
+import { useT, useLang } from "../i18n.js";
+import { speak } from "../speak.js";
 import { BEHAVIOURAL_QUESTIONS, PROTECTIVE_QUESTIONS, appliesToAge } from "../aria/constants.js";
 import SymptomChecklist from "./SymptomChecklist.jsx";
 import { SYMPTOM_CATEGORIES } from "../data/symptoms.js";
@@ -8,7 +9,7 @@ function Scale({ value, onChange, labels }) {
   return (
     <div className={"scale" + (labels.length === 3 ? " p3" : "")}>
       {labels.map((lab, i) => (
-        <div key={i} className={"chip" + (value === i ? " chip-on" : "")} onClick={() => onChange(i)} role="button">
+        <div key={i} className={"chip" + (value === i ? " chip-on" : "")} onClick={() => onChange(value === i ? null : i)} role="button">
           <span className="chip-num">{i}</span><span className="chip-lab">{lab}</span>
         </div>
       ))}
@@ -18,6 +19,7 @@ function Scale({ value, onChange, labels }) {
 
 export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
   const t = useT();
+  const { lang } = useLang();
   const B_LABELS = [t("scale0"), t("scale1"), t("scale2"), t("scale3")];
   const P_LABELS = [t("p0"), t("p1"), t("p2")];
   const [page, setPage] = useState(0);
@@ -59,6 +61,12 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
     onSubmit({ answers, protective, metadata: { ...meta, substances_mentioned, clinician_symptoms } });
   }
 
+  function readPage() {
+    let parts = [cur.title];
+    if (cur.tags) parts.push(...BEHAVIOURAL_QUESTIONS.filter((q) => cur.tags.includes(q.score) && appliesToAge(q, meta.subject_age_group)).map((q) => t("q_" + q.id)));
+    else if (cur.kind === "protective") parts.push(...PROTECTIVE_QUESTIONS.map((q) => t("p_" + q.id)));
+    speak(parts.join(". "), lang);
+  }
   function renderQuestions(tags) {
     const qs = BEHAVIOURAL_QUESTIONS.filter((q) => tags.includes(q.score) && appliesToAge(q, meta.subject_age_group));
     return qs.map((q) => (
@@ -75,7 +83,7 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
   return (
     <form className="card" onSubmit={submit}>
       <div className="eyebrow">{t("q_eyebrow")} &middot; {page + 1}/{N}</div>
-      <h2>{cur.title}</h2>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}><h2 style={{ margin: 0 }}>{cur.title}</h2><button type="button" className="btn soft" style={{ padding: "5px 11px", flex: "none" }} onClick={readPage}>🔊</button></div>
       <div className="wiz-bar"><div className="wiz-fill" style={{ width: ((page + 1) / N) * 100 + "%" }} /></div>
       {subjectLabel && page === 0 && <div className="callout" style={{ margin: "0 0 12px" }}><span className="small">Check-in for <strong>{subjectLabel}</strong> (from caseload).</span></div>}
 

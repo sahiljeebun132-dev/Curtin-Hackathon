@@ -3,6 +3,7 @@ import { useT } from "../i18n.js";
 import { useRole } from "../role.js";
 import { useMeds } from "../meds.js";
 import { useIdentity } from "../identity.js";
+import { journeyDays } from "../journey.js";
 
 const LVLC = { Low: "#1f9d57", Medium: "#c98510", High: "#e0671f", Crisis: "#d83a3a" };
 const RANK = { Crisis: 4, High: 3, Medium: 2, Low: 1 };
@@ -25,7 +26,7 @@ function IdentityCard() {
           {!dedupToken && (
             <div style={{ marginTop: 8 }}>
               <div className="time-add">
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Phone (hashed, not stored)" />
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" placeholder="Phone (hashed, not stored)" />
                 <button className="btn soft" style={{ flex: "none" }} onClick={() => phone.trim() && hashPhone(phone)}>Hash</button>
               </div>
               <p className="tiny muted" style={{ marginTop: 4 }}>Turned into a one-way fingerprint to avoid duplicates - the number is discarded.</p>
@@ -49,17 +50,21 @@ function IdentityCard() {
 
 function PatientDash({ t, onNavigate }) {
   const { meds, markDose } = useMeds();
+  const { pseudonym } = useIdentity();
+  const days = journeyDays();
+  const h = new Date().getHours();
+  const greet = t(h < 12 ? "d_morning" : h < 18 ? "d_afternoon" : "d_evening");
   const doses = meds.flatMap((m) => m.times.map((tm) => ({ medId: m.id, name: m.name, dose: m.dose, time: tm, status: m.log[tm] })));
   const taken = doses.filter((d) => d.status === "taken").length;
   const next = doses.filter((d) => !d.status).map((d) => d.time).sort()[0] ?? "-";
   return (
     <section className="card">
-      <div className="eyebrow">{t("d_hi")}</div>
-      <h2>21 {t("progress_days")} 🌱</h2>
-      <p className="muted small">{t("d_good")}</p>
+      <div className="eyebrow">{greet}{pseudonym ? ", " + pseudonym : ""} 🌱</div>
+      <h2>Day {days + 1}</h2>
+      <p className="muted small">{days === 0 ? t("d_startstoday") : t("d_good")}</p>
       <IdentityCard />
       <div className="dash-grid">
-        <Tile label={t("progress_days")} value="21" accent="var(--primary)" />
+        <Tile label={t("progress_days")} value={days} accent="var(--primary)" />
         <Tile label={t("d_meds_today")} value={`${taken}/${doses.length}`} accent="var(--low)" />
         <Tile label={t("d_next_dose")} value={next} accent="var(--warm)" />
       </div>
@@ -85,21 +90,36 @@ function PatientDash({ t, onNavigate }) {
 
 function GuardianDash({ t, caseload, onNavigate }) {
   const { meds, alerts } = useMeds();
-  const ward = caseload[0] || { initials: "-", area: "-", level: "Low", days: 0 };
+  const { pseudonym } = useIdentity();
+  const pDays = journeyDays();
+  let lastLevel = "—"; try { lastLevel = localStorage.getItem("vela_last_level") || "—"; } catch { /* ignore */ }
+  const pName = pseudonym || "Your patient";
   const missed = meds.reduce((n, m) => n + Object.values(m.log).filter((v) => v === "missed").length, 0);
+  const totalDoses = meds.reduce((n, m) => n + m.times.length, 0);
+  const takenToday = meds.reduce((n, m) => n + Object.values(m.log).filter((v) => v === "taken").length, 0);
+  const todayPct = totalDoses ? Math.round((takenToday / totalDoses) * 100) : 0;
+  const week = [80, 100, 60, 90, 70, 85, todayPct];
+  const DOW = ["M", "T", "W", "T", "F", "S", "S"];
   return (
     <section className="card">
       <div className="eyebrow">{t("d_supporting")}</div>
-      <h2>{ward.initials} <span className="muted small">&middot; {ward.area}</span></h2>
+      <h2>{pName}</h2>
       <div className="dash-grid">
-        <Tile label={t("d_risk")} value={ward.level} accent={LVLC[ward.level]} />
-        <Tile label={t("progress_days")} value={ward.days} accent="var(--primary)" />
+        <Tile label={t("d_risk")} value={lastLevel} accent={LVLC[lastLevel] || "var(--muted)"} />
+        <Tile label={t("progress_days")} value={pDays} accent="var(--primary)" />
         <Tile label={t("d_adherence")} value={missed === 0 ? t("d_ontrack") : `${missed} missed`} accent={missed ? "var(--crisis)" : "var(--low)"} />
       </div>
       {alerts.length > 0 && (
         <div className="callout warm"><span className="small">⚠ {alerts.length} missed dose(s): {alerts.map((a) => `${a.name} ${a.time}`).join(", ")}. A gentle check-in may help.</span></div>
       )}
       <div className="callout"><span className="small"><strong>{t("d_supporting")}:</strong> {t("d_guardian_note")}</span></div>
+      <h3>7-day adherence</h3>
+      <div className="bars7">
+        {week.map((p, i) => (
+          <div key={i} className="bar7"><div className="bar7-fill" style={{ height: Math.max(p, 3) + "%" }} /><span className="bar7-lab">{DOW[i]}</span></div>
+        ))}
+      </div>
+      <p className="tiny muted">Today: {todayPct}% of doses taken. Earlier days are illustrative in this demo.</p>
       <div className="divider" />
       <div className="action-grid">
         <button className="btn" onClick={() => onNavigate("meds")}>{t("d_view_meds")} &rarr;</button>

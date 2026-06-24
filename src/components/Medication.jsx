@@ -2,8 +2,46 @@ import { useState } from "react";
 import { useT } from "../i18n.js";
 import { useRole } from "../role.js";
 import { useMeds } from "../meds.js";
+import { useIdentity } from "../identity.js";
 
 const COLORS = ["#0e9488", "#f4a259", "#7c83ff", "#e0671f", "#1f9d57"];
+
+function GuardianLink() {
+  const { linkCode, generateLink } = useIdentity();
+  return (
+    <div className="callout" style={{ marginTop: 12 }}>
+      <div className="small" style={{ fontWeight: 700, marginBottom: 4 }}>🔗 Link your patient's phone</div>
+      {linkCode
+        ? <div className="small">Share this code with the patient: <code className="linkcode">{linkCode}</code> <button type="button" className="btn soft" style={{ padding: "4px 10px", flex: "none" }} onClick={generateLink}>regenerate</button></div>
+        : <button type="button" className="btn soft" onClick={generateLink}>Generate link code</button>}
+      <p className="tiny muted" style={{ marginTop: 6 }}>The patient enters this code on their phone to receive the schedule and times you set.</p>
+    </div>
+  );
+}
+
+function PatientLink() {
+  const { linked, tryLink, unlink } = useIdentity();
+  const [code, setCode] = useState("");
+  const [err, setErr] = useState(false);
+  if (linked) {
+    return (
+      <div className="callout" style={{ marginTop: 12 }}>
+        <span className="small">✓ <strong>Linked to your guardian.</strong> They manage your reminders and times. <span onClick={unlink} style={{ cursor: "pointer", textDecoration: "underline", color: "var(--muted)" }}>unlink</span></span>
+      </div>
+    );
+  }
+  return (
+    <div className="callout" style={{ marginTop: 12 }}>
+      <div className="small" style={{ fontWeight: 700, marginBottom: 6 }}>🔗 Link to your guardian</div>
+      <div className="time-add">
+        <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Enter guardian's code" />
+        <button type="button" className="btn soft" style={{ flex: "none" }} onClick={() => setErr(!tryLink(code))}>Link</button>
+      </div>
+      {err && <p className="tiny" style={{ color: "var(--crisis)" }}>Code not recognised.</p>}
+      <p className="tiny muted" style={{ marginTop: 4 }}>Enter the code your guardian gives you to receive their reminders.</p>
+    </div>
+  );
+}
 
 export default function Medication() {
   const t = useT();
@@ -28,6 +66,7 @@ export default function Medication() {
       <div className="eyebrow">{t("nav_meds")}</div>
       <h2>{t("meds_title")}</h2>
       <p className="muted small">{manager ? t("meds_guardian") : t("meds_sub")}</p>
+      {manager ? <GuardianLink /> : <PatientLink />}
 
       {manager && alerts.length > 0 && (
         <div className="crisis-banner" style={{ borderColor: "var(--high)", background: "#fff6ee" }}>
@@ -104,7 +143,7 @@ export default function Medication() {
           </div>
         );
       })}
-      <p className="tiny muted" style={{ marginTop: 10 }}>Saved on this device only &middot; survives refresh &middot; a real deployment would use secure cross-device sync.</p>
+      <p className="tiny muted" style={{ marginTop: 10 }}>Saved on this device only &middot; survives refresh &middot; a real deployment would pair the two phones via secure cross-device sync.</p>
     </section>
   );
 }

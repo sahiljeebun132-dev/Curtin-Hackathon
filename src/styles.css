@@ -264,3 +264,25 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .suggest { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--primary-700); cursor: pointer; }
 .suggest:hover { background: var(--primary-tint); }
+
+/* pairing code */
+.linkcode { font-family: ui-monospace, monospace; font-size: 16px; font-weight: 800; letter-spacing: 2px; background: var(--primary-tint); color: var(--primary-700); padding: 3px 9px; border-radius: 8px; }
+
+/* print / save-as-PDF: show only the assessment card */
+@media print {
+  .topbar, .tabs, .stepper, .sos-fab, .wiz-bar, .footer-note, .lang-switch, .role-select, .no-print, .btn { display: none !important; }
+  body { background: #fff; }
+  .shell { max-width: 100%; padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ddd; }
+}
+
+/* guardian 7-day adherence chart */
+.bars7 { display: flex; gap: 8px; align-items: flex-end; height: 92px; margin: 10px 0 4px; }
+.bar7 { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.bar7-fill { width: 100%; background: linear-gradient(180deg, #2cc0ae, var(--primary)); border-radius: 6px 6px 0 0; min-height: 3px; transition: height .6s cubic-bezier(.22,1,.36,1); }
+.bar7-lab { font-size: 11px; color: var(--muted); margin-top: 5px; font-weight: 700; }
+
+/* install button + offline badge */
+.install-btn { border: 1.5px solid var(--primary); background: var(--primary-tint); color: var(--primary-700); font: inherit; font-weight: 700; font-size: 12.5px; padding: 6px 12px; border-radius: 999px; cursor: pointer; box-shadow: var(--shadow-sm); }
+.install-btn:hover { background: var(--primary); color: #fff; }
+.offline-badge { background: #2a2110; color: #f4c869; border: 1px solid #5a4a1f; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; text-align: center; margin-bottom: 10px; }

@@ -1,5 +1,10 @@
 import { useT } from "../i18n.js";
 
+function clearAll() {
+  try { ["vela_meds", "vela_identity", "vela_link_code", "vela_linked", "vela_journey_start", "vela_trusted"].forEach((k) => localStorage.removeItem(k)); } catch { /* ignore */ }
+  try { location.reload(); } catch { /* ignore */ }
+}
+
 export default function Privacy() {
   const t = useT();
   return (
@@ -26,6 +31,10 @@ export default function Privacy() {
 
       <h3>Why we did NOT bolt ID + biometrics onto a website</h3>
       <p className="small muted">Storing the national IDs, faces and locations of vulnerable people is the most sensitive database imaginable. Doing that safely needs a hardened backend, not a static site - so this POC deliberately keeps that data out until the secure infrastructure exists. Protecting people matters more than a flashy feature.</p>
+      <div className="divider" />
+      <h3>Your data, your control</h3>
+      <p className="small muted">Everything VELA keeps lives only in this browser. You can erase it all instantly.</p>
+      <button className="btn ghost full" onClick={clearAll}>Delete all my data on this device</button>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useT } from "../i18n.js";
+import { useRole } from "../role.js";
 import EmotionCapture from "./EmotionCapture.jsx";
 import Questionnaire from "./Questionnaire.jsx";
 import AssessmentResult from "./AssessmentResult.jsx";
@@ -19,6 +20,7 @@ function Stepper({ step }) {
 
 export default function AssessmentFlow({ seed, onResult }) {
   const t = useT();
+  const { role } = useRole();
   // a seeded (social-worker) check-in is ABOUT another person, so the camera
   // (which reads whoever is in front of the screen) is skipped.
   const [step, setStep] = useState(seed ? "questionnaire" : "capture");
@@ -28,8 +30,11 @@ export default function AssessmentFlow({ seed, onResult }) {
   async function handleQuestionnaire(formData) {
     setStep("processing");
     const assessment = runAriaAssessment({ ...formData, facial });
-    const withSummaries = await attachSummaries(assessment, null);
+    const self = role === "patient" && !seed;
+    const withSummaries = await attachSummaries(assessment, null, { self });
     withSummaries._clinician = formData.metadata?.clinician_symptoms || [];
+    withSummaries._eyeRedness = facial?.eye_redness || null;
+    if (self) { try { localStorage.setItem("vela_last_level", withSummaries.risk_profile.overall_risk_level); } catch { /* ignore */ } }
     setTimeout(() => {
       setResult(withSummaries);
       setStep("result");

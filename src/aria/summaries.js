@@ -1,85 +1,60 @@
 // ===================================================================
-// HYBRID SUMMARY LAYER  (Spec Section 9: plain_language + creole)
-//
-// This is the ONLY place an LLM is allowed to act, and even here it is
-// optional. The deterministic templates below ALWAYS produce a correct,
-// safe summary. If an API key is configured, we ask the LLM ONLY to
-// rephrase that template more warmly / in Creole — it never invents
-// scores, referrals or facts. If the LLM call fails for any reason, we
-// silently fall back to the deterministic text. Numbers can never drift.
+// HYBRID SUMMARY LAYER. Deterministic by default; an optional LLM may
+// only REWORD the approved text. `opts.self` makes it address the person
+// directly ("you") when they take their own check-in.
 // ===================================================================
+const PLAIN = {
+  self: {
+    Crisis: "Based on what you shared today, you may be going through real distress right now, and you deserve support immediately.",
+    High: "Based on what you shared today, you seem to be going through a hard time and could really benefit from talking to someone.",
+    Medium: "Based on what you shared today, you may be struggling a little - talking with a counsellor could help.",
+    Low: "Based on what you shared today, things seem mostly okay, with a few signs worth gently keeping an eye on.",
+  },
+  other: {
+    Crisis: "Based on what was shared today, this person may be in immediate distress and needs someone to stay with them right now.",
+    High: "Based on what was shared today, this person appears to be going through a serious difficult time and would benefit from priority support.",
+    Medium: "Based on what was shared today, this person may be struggling and could benefit from speaking with a counsellor soon.",
+    Low: "Based on what was shared today, there are some signs worth keeping an eye on, but nothing urgent right now.",
+  },
+};
 
-// ---- Deterministic, always-available summaries ----------------------
-export function deterministicPlainSummary(result) {
+export function deterministicPlainSummary(result, self = false) {
   const level = result.risk_profile.overall_risk_level;
   const ref = result.intervention.primary_referral.organisation;
-  const base =
-    level === "Crisis"
-      ? "Based on what was shared today, this person may be in immediate distress and needs someone to stay with them right now."
-      : level === "High"
-      ? "Based on what was shared today, this person appears to be going through a serious difficult time and would benefit from priority support."
-      : level === "Medium"
-      ? "Based on what was shared today, this person may be struggling and could benefit from speaking with a counsellor soon."
-      : "Based on what was shared today, there are some signs worth keeping an eye on, but nothing urgent right now.";
-  return (
-    `${base} A good next step is to connect with ${ref}. ` +
-    "This is not a diagnosis — it is a flag for a trained person to check in with them."
-  );
+  const base = (self ? PLAIN.self : PLAIN.other)[level] || PLAIN.other.Low;
+  const tail = self
+    ? ` A kind next step is to reach out to ${ref}. This is not a diagnosis - just a gentle nudge that support is there for you.`
+    : ` A good next step is to connect with ${ref}. This is not a diagnosis - it is a flag for a trained person to check in.`;
+  return base + tail;
 }
 
-export function deterministicCreoleSummary(result) {
+export function deterministicCreoleSummary(result, self = false) {
   const level = result.risk_profile.overall_risk_level;
+  const who = self ? "to" : "sa dimoun la";
   const base =
-    level === "Crisis"
-      ? "Dapre seki finn partaze zordi, sa dimoun-la kapav pe travers enn moman bien difisil. Pa les li tousel."
-      : level === "High"
-      ? "Dapre seki finn partaze zordi, sa dimoun-la paret pe travers enn moman difisil. Li bizin sipor vit."
-      : level === "Medium"
-      ? "Dapre seki finn partaze zordi, sa dimoun-la kapav pe lite. Li kapav koz ek enn konseye."
-      : "Dapre seki finn partaze zordi, ena de-trwa siyn pou veye, me pa ena irzans pou lemoman.";
-  return (
-    `${base} Enn bon premie pa: kontakte Befrienders Mauritius lor 800 9393. ` +
-    "Sa pa enn diagnostik — se zis enn siyn pou enn dimoun forme al get li."
-  );
+    level === "Crisis" ? `Dapre seki finn partaze zordi, ${self ? "to" : "sa dimoun la"} kapav pe travers enn moman bien difisil. ${self ? "To meriter sipor deswit." : "Pa les li tousel."}`
+    : level === "High" ? `Dapre seki finn partaze zordi, ${who} paret pe travers enn moman difisil ek bizin sipor vit.`
+    : level === "Medium" ? `Dapre seki finn partaze zordi, ${who} kapav pe lite ek kapav koz ek enn konseye.`
+    : `Dapre seki finn partaze zordi, ena de-trwa siyn pou veye, me pa ena irzans pou lemoman.`;
+  return `${base} Enn bon premie pa: kontakte Befrienders Mauritius lor 800 9393. Sa pa enn diagnostik.`;
 }
 
-// ---- Public entry point used by the UI ------------------------------
-// `llmFn` is an optional async function (prompt) => string. We inject it
-// rather than hard-coding a vendor, so swapping Claude/GPT/none is trivial
-// and the engine stays vendor-neutral and testable.
-export async function attachSummaries(result, llmFn = null) {
-  const plainFallback = deterministicPlainSummary(result);
+export async function attachSummaries(result, llmFn = null, opts = {}) {
+  const self = !!opts.self;
+  const plainFallback = deterministicPlainSummary(result, self);
   const creoleNeeded = result.language_used === "creole";
-  const creoleFallback = creoleNeeded ? deterministicCreoleSummary(result) : "";
+  const creoleFallback = creoleNeeded ? deterministicCreoleSummary(result, self) : "";
 
-  // No LLM available -> deterministic only. This is the default, safe path.
   if (typeof llmFn !== "function") {
     return { ...result, plain_language_summary: plainFallback, creole_summary: creoleFallback };
   }
-
-  // LLM available -> ask it ONLY to rephrase the approved text, with the
-  // facts locked. We pass the numbers so it cannot contradict them.
   try {
-    const guard =
-      "You are rewording an approved safeguarding summary for a Mauritian " +
-      "social worker. Do NOT change any facts, scores, names or phone numbers. " +
-      "Keep it Grade-8 reading level, warm and non-stigmatising. Return ONLY the reworded text.";
-    const plain = await llmFn(
-      `${guard}\n\nApproved summary:\n${plainFallback}\n\n(Risk level: ${result.risk_profile.overall_risk_level}, score ${result.risk_profile.risk_score}.)`
-    );
+    const guard = "Reword this approved safeguarding summary. Do NOT change any facts, scores, names or phone numbers. Keep it warm, Grade-8, non-stigmatising. Return ONLY the reworded text.";
+    const plain = await llmFn(`${guard}\n\nApproved:\n${plainFallback}`);
     let creole = creoleFallback;
-    if (creoleNeeded) {
-      creole = await llmFn(
-        `${guard} Write the result in Mauritian Creole.\n\nApproved summary:\n${creoleFallback}`
-      );
-    }
-    return {
-      ...result,
-      plain_language_summary: (plain || plainFallback).trim(),
-      creole_summary: (creole || creoleFallback).trim(),
-    };
-  } catch (e) {
-    // Any failure -> deterministic fallback. The user never sees a broken summary.
+    if (creoleNeeded) creole = await llmFn(`${guard} Write it in Mauritian Creole.\n\nApproved:\n${creoleFallback}`);
+    return { ...result, plain_language_summary: (plain || plainFallback).trim(), creole_summary: (creole || creoleFallback).trim() };
+  } catch {
     return { ...result, plain_language_summary: plainFallback, creole_summary: creoleFallback };
   }
 }

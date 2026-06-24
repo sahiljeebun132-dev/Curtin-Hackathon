@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useT } from "../i18n.js";
 import { useRole } from "../role.js";
+import { journeyDays } from "../journey.js";
 
 const LVLC = { Low: "#1f9d57", Medium: "#c98510", High: "#e0671f", Crisis: "#d83a3a" };
 const RANK = { Crisis: 4, High: 3, Medium: 2, Low: 1 };
@@ -18,20 +19,21 @@ const SORTS = {
   name: (a, b) => a.initials.localeCompare(b.initials),
 };
 
-function Journey({ t, days }) {
+function Journey({ t, days, cal = DAYS }) {
+  const reached = MILESTONES.filter((m) => parseInt(m.d.replace(/\D/g, ""), 10) <= days);
   return (
     <>
       <div className="journey">
         <div><div className="streak">{days}</div><div className="muted small">{t("progress_days")}</div></div>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div className="cal">{DAYS.map((d, i) => <i key={i} className={d} />)}</div>
-          <div className="tiny muted">Last 30 days - green = sober, amber = a harder day</div>
+          <div className="cal">{cal.map((d, i) => <i key={i} className={d} />)}</div>
+          <div className="tiny muted">green = sober day</div>
         </div>
       </div>
       <h3>Milestones</h3>
-      {MILESTONES.map((m) => (
-        <div className="milestone" key={m.d}><span className="dot2" /><div><strong className="small">{m.d}</strong><div className="muted small">{m.txt}</div></div></div>
-      ))}
+      {reached.length === 0
+        ? <p className="muted small">Your journey is just beginning - every day from here counts.</p>
+        : reached.map((m) => (<div className="milestone" key={m.d}><span className="dot2" /><div><strong className="small">{m.d}</strong><div className="muted small">{m.txt}</div></div></div>))}
     </>
   );
 }
@@ -91,13 +93,14 @@ export default function Progress({ caseload = [], onStartCheckin }) {
     );
   }
 
-  const sober = DAYS.filter((d) => d === "s").length;
+  const days = journeyDays();
+  const cal = Array.from({ length: 30 }, (_, i) => (i < days ? "s" : "p"));
   return (
     <section className="card">
       <div className="eyebrow">{t("nav_progress")}</div>
       <h2>{t("progress_title")}</h2>
       <p className="muted small">{t("progress_sub")} &middot; {t("progress_role")}: <strong>{t("role_" + role)}</strong> <span className="muted">(change at the top)</span></p>
-      <Journey t={t} days={sober} />
+      <Journey t={t} days={days} cal={cal} />
       {role === "guardian"
         ? <div className="callout warm" style={{ marginTop: 12 }}><span className="small"><strong>For the guardian:</strong> Your role is encouragement, not surveillance. You see only what the person has chosen to share.</span></div>
         : <div className="callout" style={{ marginTop: 12 }}><span className="small"><strong>You're doing the work.</strong> Every green day counts. You decide what to share with your guardian or social worker.</span></div>}

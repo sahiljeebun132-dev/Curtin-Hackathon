@@ -73,6 +73,49 @@ function RoleSelect() {
   );
 }
 
+function InstallButton() {
+  const [prompt, setPrompt] = useState(null);
+  const [installed, setInstalled] = useState(false);
+  const [tip, setTip] = useState(false);
+  useEffect(() => {
+    const onBIP = (e) => { e.preventDefault(); setPrompt(e); };
+    const onInstalled = () => { setInstalled(true); setPrompt(null); };
+    window.addEventListener("beforeinstallprompt", onBIP);
+    window.addEventListener("appinstalled", onInstalled);
+    try { if (window.matchMedia("(display-mode: standalone)").matches) setInstalled(true); } catch { /* ignore */ }
+    return () => { window.removeEventListener("beforeinstallprompt", onBIP); window.removeEventListener("appinstalled", onInstalled); };
+  }, []);
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || "");
+  if (installed) return null;
+  if (!prompt && !isIOS) return null;
+  async function click() { if (prompt) { prompt.prompt(); await prompt.userChoice; setPrompt(null); } else setTip(true); }
+  return (
+    <>
+      <button className="install-btn" onClick={click} aria-label="Install app">&#x2B07; Install</button>
+      {tip && (
+        <div className="modal-back" onClick={() => setTip(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <h2>Install VELA</h2>
+            <p className="small muted">On iPhone/iPad: tap the Share icon, then <strong>Add to Home Screen</strong>. On Android/desktop Chrome or Edge, use the install icon in the address bar.</p>
+            <button className="btn full" onClick={() => setTip(false)}>Got it</button>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+function OfflineBadge() {
+  const [off, setOff] = useState(typeof navigator !== "undefined" && !navigator.onLine);
+  useEffect(() => {
+    const on = () => setOff(false), of = () => setOff(true);
+    window.addEventListener("online", on); window.addEventListener("offline", of);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", of); };
+  }, []);
+  if (!off) return null;
+  return <div className="offline-badge">&#x26A1; Offline — VELA still works</div>;
+}
+
 const TAB_ROLES = {
   home: ["patient", "guardian", "social"],
   checkin: ["patient", "guardian", "social"],
@@ -118,10 +161,11 @@ export default function App() {
 
   return (
     <div className="shell">
+      <OfflineBadge />
       {alarm && <div className="alarm-toast">🔔 {t("meds_alarm")}: {alarm}</div>}
       <div className="topbar">
         <Brand />
-        <div className="topbar-right"><RoleSelect /><LangSwitch /></div>
+        <div className="topbar-right"><InstallButton /><RoleSelect /><LangSwitch /></div>
       </div>
       <div className="tabs">
         {visible.map(([k, label]) => (<button key={k} className={tab === k ? "on" : ""} onClick={() => openTab(k)}>{label}</button>))}

@@ -2,123 +2,186 @@
 
 **Vigilance & Early-intervention Lifeline Assistant** — a calm, private, **AI-assisted early-support** tool for substance-misuse risk, built for **Game of Code 2026 · "Towards Recovery: Building Safer Communities"** (Curtin Mauritius).
 
-> ⚠️ **ARIA is a support flag, not a diagnosis.** It never diagnoses, never acts automatically, and is always reviewed by a trained human. Privacy-first by design — no national ID, no registry of users, nothing stored without consent.
+> ⚠️ **ARIA is a support flag, not a diagnosis.** It never diagnoses, never acts automatically, and is always reviewed by a trained human. Privacy-first: no national ID, no registry of users, nothing stored off your device without consent.
 
 🌐 **Live demo:** https://curtin-hackathon.vercel.app
 
 ---
 
-## Screenshots
-
-> Add your own screenshots to the `screenshots/` folder and they'll appear here.
-
-| Patient home | Check-in (validated questions) | Result |
-|---|---|---|
-| ![Patient dashboard](screenshots/01-patient-home.png) | ![Questionnaire](screenshots/02-questionnaire.png) | ![Result](screenshots/03-result.png) |
-
-| Medication (guardian) | Support + awareness map | Social-worker caseload |
-|---|---|---|
-| ![Medication](screenshots/04-medication.png) | ![Support map](screenshots/05-support-map.png) | ![Caseload](screenshots/06-caseload.png) |
-
-**How to capture them:** run the app (`npm run dev`), open each tab, and use your OS screenshot tool (Win: `Win+Shift+S`). Save as the filenames above into `screenshots/`.
+## Table of contents
+1. [What it is](#what-it-is)
+2. [Screenshots](#screenshots)
+3. [Install the app](#install-the-app)
+4. [Run it locally](#run-it-locally)
+5. [How to use (step by step)](#how-to-use-step-by-step)
+6. [Features](#features)
+7. [The ARIA engine & validated questions](#the-aria-engine--validated-questions)
+8. [Ethics & privacy](#ethics--privacy)
+9. [Tech stack & project structure](#tech-stack--project-structure)
+10. [Deployment](#deployment)
+11. [Troubleshooting](#troubleshooting)
+12. [Limitations & credits](#limitations--credits)
 
 ---
 
-## What it does
+## What it is
+VELA helps a trained person notice — early and kindly — when someone might be struggling with substance use, and supports the whole recovery journey. It has two inputs and one explainable engine:
 
-VELA helps a trained reviewer notice — early and with kindness — when someone might be struggling with substance use. It has two inputs and one explainable engine:
+- **Source A — optional facial check-in.** A local, on-device read of facial expressions (and an *observational* eye-redness note). Video never leaves the device.
+- **Source B — a validated questionnaire.** Age-adaptive items adapted from **CRAFFT** (under-18), **DAST-10** and **AUDIT-C** (18+), plus wellbeing and safeguarding signals.
+- **ARIA engine.** A fully **deterministic** scorer (same input → same output) producing four sub-scores, substance modifiers, crisis/safeguarding overrides, recovery-readiness, a fairness audit, and plain-language + Mauritian Kreol summaries.
 
-- **Source A — optional facial check-in.** A local, on-device read of 7 facial expressions (via `@vladmandic/face-api`). Video never leaves the device.
-- **Source B — a validated questionnaire.** Age-adaptive items adapted from **CRAFFT** (under-18), **DAST-10** and **AUDIT-C** (18+), plus general wellbeing and safeguarding signals.
-- **ARIA engine.** A fully **deterministic** scorer (same input → same output, no AI in the loop) that produces four sub-scores, substance modifiers, crisis/safeguarding overrides, recovery-readiness, a fairness audit, and plain-language + Mauritian Kreol summaries.
+---
 
-## Key features
+## Screenshots
+> Drop your own PNGs into `screenshots/` with these names and they appear below. Capture with **Win+Shift+S** (Windows) or **Cmd+Shift+4** (Mac).
 
-- **Trilingual** — English / French / Mauritian Kreol, switchable live (questions included).
-- **Role-based portal** — Patient / Guardian / Social worker, each with its own dashboard and tabs. Guardian & social-worker views require a staff code; patients stay anonymous.
-- **Medication reminders** — guardian sets the schedule, it syncs to the patient and **rings** (sound + notification) on any tab; missed doses alert the guardian. Persisted on-device.
-- **SOS** — one tap to verified crisis lines + a trusted contact.
-- **Support + anonymous area map** — real Mauritian organisations and an aggregate, per-zone awareness heat-map (never individuals).
-- **Social-worker caseload** — searchable/sortable, one-click seeded check-ins, results write back to the caseload.
-- **Caseload assistant** — a local, deterministic chatbot answering triage questions over **anonymised** data (initials only). It cannot look up a named person or an ID — by design.
-- **Privacy-safe identity** — self-chosen pseudonym + anonymous ID; optional phone hashed one-way (SHA-256) for de-duplication; "forget me" anytime.
+| Patient home | Check-in (validated) | Result |
+|---|---|---|
+| ![Patient home](screenshots/01-patient-home.png) | ![Questionnaire](screenshots/02-questionnaire.png) | ![Result](screenshots/03-result.png) |
 
-## Ethics & privacy (the core)
+| Medication + pairing | Support + map | Social-worker caseload |
+|---|---|---|
+| ![Medication](screenshots/04-medication.png) | ![Support map](screenshots/05-support-map.png) | ![Caseload](screenshots/06-caseload.png) |
 
-- **No diagnosis. Human review always required. Non-punitive.**
-- **No national ID, no named registry of drug users.** Identity is pseudonymous; de-dup uses one-way hashes; areas are shown only as anonymous aggregates.
-- **Session/device-only data**, aligned with the Mauritius Data Protection Act 2017 and GDPR principles (consent, minimisation, purpose limitation).
-- The `Privacy` tab documents exactly what is and isn't collected, and the secure-backend design a production build would use.
+---
 
-## Validated instruments (with attribution)
+## Install the app
+There are three ways to get VELA. **The camera and map need internet + HTTPS, both automatic on the live URL.**
 
-Questions are **paraphrased** from and **inspired by**:
+### A) Just use it (no install)
+Open **https://curtin-hackathon.vercel.app** in any modern browser.
 
-- **CRAFFT** — adolescent substance-use screen (Knight et al., Boston Children's Hospital).
-- **DAST-10** — Drug Abuse Screening Test (Skinner).
-- **AUDIT-C** — alcohol screen (WHO).
+### B) Install it as an app (PWA) — recommended for phones
+VELA is a Progressive Web App: it installs to the home screen and works offline after the first load.
+- **Android / Chrome / Edge (desktop or phone):** open the live URL, then tap the **Install** button in the top bar (or the install icon in the address bar). Confirm.
+- **iPhone / iPad (Safari):** open the live URL, tap the **Share** icon, then **Add to Home Screen**. (Tapping **Install** in the app shows this tip.)
+- Once installed it opens full-screen like a native app and keeps working with no signal.
 
-These are used for **screening, not diagnosis**. A production deployment should license/administer the official instruments per their terms.
+### C) Run from source (developers)
+See [Run it locally](#run-it-locally).
 
-## Tech stack
+---
 
-- **React 18 + Vite** (fast SPA, single bundle, lazy-loaded face models)
-- **@vladmandic/face-api** (maintained fork) on TensorFlow.js — local facial-expression read
-- **Leaflet + OpenStreetMap** — the awareness map
-- **Web Crypto (SHA-256)**, **Web Audio**, **Notifications**, **localStorage** — all client-side
-- No backend required for the demo; **deterministic engine** in plain JS
+## Run it locally
+**Prerequisites:** [Node.js 18+](https://nodejs.org) and npm.
 
-## Project structure
+```bash
+# from the project folder (vela-aria)
+npm install          # install dependencies (first time only)
+npm run dev          # start dev server -> http://localhost:5173 (opens automatically)
+```
+
+Other commands:
+```bash
+npm run build        # production build into dist/
+npm run preview      # serve the production build locally
+npm run test:engine  # run the deterministic engine tests (15 checks)
+```
+
+> The camera works on `http://localhost` (treated as secure) and on the HTTPS live site, but **not** when opening the built `index.html` directly from disk.
+
+---
+
+## How to use (step by step)
+
+### Choose who you are (top-right role selector)
+- **Patient** — open, anonymous, no login.
+- **Guardian** / **Social worker** — staff views; you'll be asked for a **staff access code**. Demo code: **`VELA-STAFF`**.
+- Switch language any time: **English / Français / Kreol** (top-right).
+
+### As a Patient
+1. **Home** — see your day counter (starts at **Day 1**), today's medication, and an optional **nickname** (anonymous ID; "Forget me" deletes it). You can optionally hash a phone number for de-duplication — the number is never stored.
+2. **Check-in** — Step 1 is an optional **camera read** (tap *Continue* or *Skip the camera*). Step 2 is the **questionnaire** (6–7 short pages with Back/Next and a 🔊 read-aloud button). You get a calm, plain-language **result** with a recommended next step. Tap **🖨 Print / Save PDF** to save it, or **🔊 Read aloud**.
+3. **Medication** — your guardian sets the schedule; you get reminders that **ring** at each dose time (sound + notification) on any tab. Tap **✓ Taken** or **✗ Missed**.
+4. **Link to a guardian** — on Medication, enter the code your guardian gives you to pair (so their schedule reaches you).
+5. **SOS** (floating red button, always visible) — one tap to verified crisis lines, and to your **trusted contact** (add a family member/close person once; then Text or Call them instantly).
+
+### As a Guardian
+1. Enter the staff code, then **Medication**: tap **Generate link code** and share it with the patient's phone.
+2. **Add a medication** — name, dose, *how to take it*, and one or more **dose times** (compact time picker → "Add time"). The schedule and times sync to the linked patient.
+3. Watch **adherence** (dots + a **7-day chart** on your dashboard). If a dose is missed, you get a **missed-dose alert**.
+
+### As a Social worker
+1. Enter the staff code, then **Progress** for your **caseload** (anonymised initials). **Search** and **sort** (risk / days sober / missed / name).
+2. Pick a person → **Start a check-in for them** (camera skipped, context pre-filled). Finishing **updates their risk level** in the caseload.
+3. **Assistant** tab — ask things like *"who needs attention"*, *"reviews due today"*, *"missed doses"*, *"Roche Bois"*, *"summary"*. Answers are computed locally over anonymised data only.
+
+### Privacy
+The **Privacy** tab explains what is/isn't collected and has a **Delete all my data on this device** button.
+
+---
+
+## Features
+- **Trilingual** (EN / FR / Kreol), questions included.
+- **Role-based portal** with staff verification; patients anonymous.
+- **Validated, age-adaptive questionnaire** (CRAFFT / DAST-10 / AUDIT-C) with read-aloud.
+- **Deterministic ARIA engine** → printable result + plain-language & Kreol summaries.
+- **Medication**: guardian-set schedule, device pairing by code, ringing reminders, missed-dose alerts, 7-day adherence chart.
+- **SOS** with verified crisis lines + a savable **trusted contact** (Text/Call).
+- **Support**: real Mauritian organisations + an **anonymous** aggregate area map (never individuals).
+- **Social-worker caseload** (search/sort, seeded check-ins, write-back) + **anonymised assistant**.
+- **Privacy-safe identity** (pseudonym + SHA-256 de-dup), **delete-all** control.
+- **PWA**: installable + offline, with an offline indicator.
+
+---
+
+## The ARIA engine & validated questions
+- **Deterministic** — plain-JS math, no AI in the scoring loop; identical input → identical output. 15 unit tests + 171 edge-case checks.
+- **Four sub-scores** (behavioural, emotional, physical, environmental) normalised dynamically to the items shown, minus protective factors, plus substance modifiers; crisis/safeguarding overrides.
+- **Questions paraphrased** from **CRAFFT** (Knight et al., Boston Children's Hospital), **DAST-10** (Skinner), **AUDIT-C** (WHO) — for **screening, not diagnosis**; a production build should license/administer the official instruments.
+- The facial **eye-redness** note is shown only as a clinician-facing **observation** (many benign causes) and **does not change the score**.
+
+---
+
+## Ethics & privacy
+No diagnosis · human review always required · non-punitive · no national ID · no registry of users · session/device-only data · aligned to the Mauritius Data Protection Act 2017 and GDPR principles. The assistant cannot look up a named individual — by design.
+
+---
+
+## Tech stack & project structure
+**React 18 + Vite**, **@vladmandic/face-api** (TensorFlow.js, lazy-loaded), **Leaflet + OpenStreetMap**, Web Crypto / Web Audio / Web Speech / Notifications / localStorage, a hand-rolled **service worker** for offline. No backend required for the demo.
 
 ```
+public/      manifest.webmanifest, sw.js, icon.svg      (PWA)
 src/
-  aria/
-    engine.js        deterministic scoring engine (the brain)
-    constants.js     validated question set + weights (CRAFFT/DAST/AUDIT)
-    referrals.js     verified Mauritius referral network
-    summaries.js     plain-language + Kreol summaries
-    engine.test.mjs  15 unit checks   ·   verify.mjs  171 edge checks
-  components/        Dashboard, AssessmentFlow, EmotionCapture, Questionnaire,
-                     AssessmentResult, Medication, Support, Progress, Privacy,
-                     Assistant, SosButton, SymptomChecklist
-  data/              supportGroups, zones (aggregate), symptoms, caseload
-  i18n*.js           EN / FR / Kreol dictionaries
-  role.js meds.js identity.js   shared providers (role, medication, identity)
+  aria/      engine.js, constants.js, referrals.js, summaries.js, *.test/verify
+  components/ Dashboard, AssessmentFlow, EmotionCapture, Questionnaire,
+              AssessmentResult, Medication, Support, Progress, Privacy,
+              Assistant, SosButton, SymptomChecklist
+  data/      supportGroups, zones (aggregate), symptoms, caseload
+  i18n*.js   EN / FR / Kreol dictionaries
+  role.js meds.js identity.js journey.js speak.js   (providers + utils)
   App.jsx main.jsx styles.css
 ```
 
-## Getting started
+---
+
+## Deployment
+Connected to GitHub → Vercel auto-deploys every push. `vercel.json` sets framework **Vite**, build `npm run build`, output `dist/`, SPA rewrites; HTTPS is automatic.
 
 ```bash
-npm install
-npm run dev          # http://localhost:5173
-npm run build        # production build -> dist/
-npm run test:engine  # deterministic engine tests
+# helper scripts in the repo (Windows / macOS-Linux):
+deploy.bat  /  deploy.sh     commit + push (Vercel rebuilds)
+first-push.bat               first-time force publish
+
+# or manually:
+git add -A && git commit -m "update" && git push
 ```
 
-## How to use
+---
 
-1. **Patient** (default, anonymous): set a nickname (optional), do a check-in (camera optional → questions), log medication, see your streak.
-2. **Guardian** (staff code `VELA-STAFF`): set the medication schedule, watch adherence, get missed-dose alerts.
-3. **Social worker** (staff code `VELA-STAFF`): work the caseload (search/sort), launch a seeded check-in for a person (camera skipped, context pre-filled) — the result updates their risk level — and use the assistant for triage.
+## Troubleshooting
+- **"No camera access"** — allow the camera in the browser's address bar, **close other apps/tabs using it**, then tap **Try again**. You can always **Skip the camera**.
+- **Install button not showing** — you must be on the **HTTPS live URL** (not a local file), and not already installed. On iPhone use **Share → Add to Home Screen**.
+- **Map is blank** — the map needs internet (OpenStreetMap tiles); the rest of the app still works offline.
+- **Reminders don't ring** — allow notifications when prompted; reminders run while the app is open (a production build would use push for background delivery).
+- **Staff views ask for a code** — that's intended; demo code is **`VELA-STAFF`**.
 
-## Deployment (Vercel)
+---
 
-Connected to GitHub → every push auto-deploys. `vercel.json` sets framework **Vite**, build `npm run build`, output `dist/`, with SPA rewrites. HTTPS (required for camera + map) is automatic.
-
-```bash
-# one-click helpers in the repo:
-deploy.bat   / deploy.sh        push (and Vercel auto-rebuilds)
-first-push.bat                  first-time force publish
-```
-
-## Limitations & roadmap
-
-- Facial-emotion reading is **smoothed and confidence-gated** for stability, but emotion recognition from faces is inherently imperfect — it's a *supporting* signal, never decisive.
-- Demo state (caseload, meds, identity) is on-device only; a production build adds a secure, encrypted backend with consent and role-based access.
-- The scoring weights are a designed heuristic informed by validated screens — not a clinically validated composite instrument.
-
-## Credits
+## Limitations & credits
+Facial-emotion reading is smoothed and confidence-gated but inherently imperfect — a *supporting* signal, never decisive. Demo state lives on-device and resets if cleared; production adds a secure, encrypted backend with consent and role-based access. The scoring weights are a designed heuristic informed by validated screens, not a clinically validated composite.
 
 Built for **Game of Code 2026 — Towards Recovery, Curtin Mauritius.**
-VELA · ARIA v1.0 — *an AI-assisted risk flag, not a clinical diagnosis. Always human-reviewed.*
+*VELA · ARIA v1.0 — an AI-assisted risk flag, not a clinical diagnosis. Always human-reviewed.*

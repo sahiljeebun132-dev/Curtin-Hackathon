@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { useT } from "../i18n.js";
+import { useT, useLang } from "../i18n.js";
+import { useRole } from "../role.js";
+import { speak } from "../speak.js";
 
 const LVL = {
   Low: { c: "#1f9d57", soft: "#e3f5ea", word: "Low concern" },
@@ -37,6 +39,9 @@ function Bar({ label, value, max, delay }) {
 
 export default function AssessmentResult({ result, onRestart }) {
   const t = useT();
+  const { lang } = useLang();
+  const { role } = useRole();
+  const staffView = role !== "patient";
   if (!result) return null;
   const r = result;
   const lvl = r.risk_profile.overall_risk_level;
@@ -56,6 +61,10 @@ export default function AssessmentResult({ result, onRestart }) {
         </div>
       </div>
 
+      <div className="row no-print" style={{ marginTop: 12 }}>
+        <button type="button" className="btn soft" onClick={() => speak(`${r.plain_language_summary} ${r.creole_summary || ""}`, lang)}>🔊 Read aloud</button>
+        <button type="button" className="btn soft" onClick={() => window.print()}>🖨 Print / Save PDF</button>
+      </div>
       {r.flags.crisis_flag && (<div className="crisis-banner"><strong>{t("res_actnow")}</strong><p className="small" style={{ marginBottom: 0 }}>{r.crisis_message}</p></div>)}
 
       <h3>{t("res_saying")}</h3>
@@ -71,6 +80,9 @@ export default function AssessmentResult({ result, onRestart }) {
       </div>
       <div className="callout"><span className="small"><strong>{t("res_conversation")}</strong> {r.intervention.stigma_sensitive_note}</span></div>
 
+      {r._eyeRedness?.elevated && (
+        <div className="callout warm"><span className="small"><strong>Observation:</strong> eye redness appeared elevated on camera. This has many everyday causes (tiredness, screens, allergies, crying) and is <strong>not</strong> a sign of drug use on its own - note it for a clinician to consider, never a conclusion. It does not change the score.</span></div>
+      )}
       {clinician.length > 0 && (
         <>
           <h3>{t("res_categories")}</h3>
@@ -79,10 +91,12 @@ export default function AssessmentResult({ result, onRestart }) {
         </>
       )}
 
-      <h3>{t("res_ready")}</h3>
-      <div className="readiness-track"><div className="readiness-fill" style={{ width: (r.recovery_readiness.score * 10) + "%" }} /></div>
-      <p className="small"><strong>{r.recovery_readiness.stage}</strong> - {r.recovery_readiness.score}/10</p>
-      <div className="callout"><span className="small">{r.recovery_readiness.opening_line_for_counsellor}</span></div>
+      {staffView && (<>
+        <h3>{t("res_ready")}</h3>
+        <div className="readiness-track"><div className="readiness-fill" style={{ width: (r.recovery_readiness.score * 10) + "%" }} /></div>
+        <p className="small"><strong>{r.recovery_readiness.stage}</strong> - {r.recovery_readiness.score}/10</p>
+        <div className="callout"><span className="small">{r.recovery_readiness.opening_line_for_counsellor}</span></div>
+      </>)}
 
       <h3>{t("res_signals")}</h3>
       <div className="bars">
@@ -94,13 +108,17 @@ export default function AssessmentResult({ result, onRestart }) {
       <p className="tiny muted">Strengths -{b.protective_deduction} / substances +{b.substance_modifier}.</p>
 
       <h3>{t("res_flags")}</h3>
-      <div className="flags">
-        {Object.entries(r.flags).map(([k, v]) => (<span key={k} className={"flag" + (v ? " on" : "") + (v && /crisis|self_harm/.test(k) ? " crisis" : "")}>{k.replace(/_flag$/, "").replace(/_/g, " ")}</span>))}
-      </div>
+      {Object.entries(r.flags).filter(([, v]) => v).length === 0
+        ? <p className="muted small">No specific concerns were flagged in this check-in.</p>
+        : <div className="flags">
+            {Object.entries(r.flags).filter(([, v]) => v).map(([k]) => (
+              <span key={k} className={"flag on" + (/crisis|self_harm/.test(k) ? " crisis" : "")}>{k.replace(/_flag$/, "").replace(/_/g, " ")}</span>
+            ))}
+          </div>}
 
       <h3>{t("res_trust")}</h3>
       <p className="small muted">{r.explainability.reasoning_summary}</p>
-      <p className="tiny muted">{r.fairness_audit.bias_note}</p>
+      {staffView && <p className="tiny muted">{r.fairness_audit.bias_note}</p>}
 
       <div className="divider" />
       <button className="btn ghost full" onClick={onRestart}>{t("res_new")}</button>
