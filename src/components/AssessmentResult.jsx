@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useT, useLang } from "../i18n.js";
 import { useRole } from "../role.js";
-import { speak } from "../speak.js";
+import { speak, stopSpeaking } from "../speak.js";
+import Companion from "./Companion.jsx";
 
+const ACT = { "Monitor": "act_monitor", "Counsellor Session": "act_counsellor", "NGO Referral": "act_ngo", "Crisis Intervention": "act_crisis" };
 const LVL = {
   Low: { c: "#1f9d57", soft: "#e3f5ea", word: "Low concern" },
   Medium: { c: "#c98510", soft: "#fbf0d9", word: "Worth a chat" },
@@ -42,6 +44,8 @@ export default function AssessmentResult({ result, onRestart }) {
   const { lang } = useLang();
   const { role } = useRole();
   const staffView = role !== "patient";
+  const [chat, setChat] = useState(false);
+  useEffect(() => () => stopSpeaking(), []);
   if (!result) return null;
   const r = result;
   const lvl = r.risk_profile.overall_risk_level;
@@ -55,8 +59,8 @@ export default function AssessmentResult({ result, onRestart }) {
       <div className="result-hero" style={{ background: tt.soft }}>
         <Gauge value={r.risk_profile.risk_score} color={tt.c} />
         <div style={{ flex: 1, minWidth: 180 }}>
-          <span className="level-pill" style={{ background: "#fff", color: tt.c }}>{tt.word}</span>
-          <h2 style={{ marginTop: 10 }}>{r.intervention.recommended_action}</h2>
+          <span className="level-pill" style={{ background: "#fff", color: tt.c }}>{t("lvl_" + lvl.toLowerCase())}</span>
+          <h2 style={{ marginTop: 10 }}>{ACT[r.intervention.recommended_action] ? t(ACT[r.intervention.recommended_action]) : r.intervention.recommended_action}</h2>
           <p className="muted small">{r.assessment_id} / {r.risk_profile.confidence}</p>
         </div>
       </div>

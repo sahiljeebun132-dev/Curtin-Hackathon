@@ -243,18 +243,23 @@ export function runAriaAssessment(input = {}) {
   const prot = protectiveDeduction(protective);
   const sub = substanceModifiers(substances);
 
+  // Compute the final from the SAME rounded numbers shown in the breakdown so
+  // the result reconciles exactly: areas - protective + substances.
+  const bR = round(behavioural), eR = round(emo.total), pR = round(physical), envR = round(env.score), dR = round(prot.deduction);
   const subScoreSum = behavioural + emo.total + physical + env.score;
-  let finalScore = subScoreSum - prot.deduction + sub.total;
-  finalScore = round(clamp(finalScore, 0, 100));
+  const areasTotal = bR + eR + pR + envR;
+  let finalScore = clamp(areasTotal - dR + sub.total, 0, 100);
+  const rawScore = finalScore; // arithmetic result before any safeguard override
 
   // --- band lookup ---
   let band = RISK_BANDS.find((b) => finalScore <= b.max);
 
   // --- crisis override (Spec Section 4) ---
   const crisis = detectCrisis(input, finalScore, facial);
+  let crisisFloored = false;
   if (crisis.crisis_flag) {
     band = RISK_BANDS.find((b) => b.level === "Crisis");
-    finalScore = Math.max(finalScore, 80); // score must reflect a crisis, not read like a High
+    if (finalScore < 80) { finalScore = 80; crisisFloored = true; } // safeguard floor
   }
 
   // --- safeguarding (children + High/Crisis) ---
@@ -327,10 +332,9 @@ export function runAriaAssessment(input = {}) {
 
     explainability: {
       reasoning_summary:
-        `This case scored ${finalScore}/100 (${band.level}). The largest driver was ${topFactor}. ` +
-        `Protective factors reduced the score by ${round(prot.deduction)} points. ` +
-        (sub.total ? `Named substances added ${sub.total} points (${sub.labels.join(", ")}). ` : "") +
-        `This is a support flag, not a diagnosis — a human must review it.`,
+        crisisFloored
+          ? `A safeguarding concern was raised, so this check-in is treated as Crisis and the score is set to a minimum of 80/100 - the safeguard overrides the points. (The signal-based score before the safeguard was ${rawScore}/100.) This is a support flag, not a diagnosis - a person must review it.`
+          : `The four areas added up to ${areasTotal}/100; protective factors removed ${dR}` + (sub.total ? `, and named substances added ${sub.total} (${sub.labels.join(", ")})` : "") + `, giving ${finalScore}/100 (${band.level}). The biggest driver was ${topFactor}. This is a support flag, not a diagnosis - a person must review it.`,
       top_contributing_factor: topFactor,
       protective_factors_noted: protectiveNoted.length ? protectiveNoted : ["none reported"],
       uncertainty_note: confidence.note,
@@ -371,9 +375,12 @@ export function runAriaAssessment(input = {}) {
     fairness_audit: {
       bias_risk: env.geographic_risk ? "Medium" : "Low",
       bias_note:
-        "Score derived only from behavioural, emotional, physical and environmental indicators plus named substances. " +
-        "Gender, ethnicity and religion were NOT used. Geographic zone affected ONLY the environmental sub-score" +
-        (env.geographic_risk ? ", which is why bias_risk is flagged Medium for review." : "."),
+        "Score uses only the answers given, plus any named substances. No gender, ethnicity, religion, or automatic location were used - the app never detects or tracks where you are. " +
+        ((metadata.geographic_zone && String(metadata.geographic_zone).trim())
+          ? (env.geographic_risk
+              ? "An area was typed in manually (optional) and only nudged the environmental sub-score; because it is a documented higher-risk area, this is flagged Medium so a person double-checks it is fair."
+              : "An area was typed in manually (optional) and did not raise the score.")
+          : "No area or location was entered."),
     },
 
     plain_language_summary: "", // filled by summaries.js (deterministic fallback or LLM)

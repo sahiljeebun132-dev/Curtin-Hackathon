@@ -54,8 +54,8 @@ ok("allMax: geo flag", runAriaAssessment(scenarios.allMax).flags.geographic_risk
 const eng = await attachSummaries(runAriaAssessment({ metadata:{ language_preference:"english" }}), null);
 ok("english plain summary present", eng.plain_language_summary.length > 20);
 ok("english creole empty", eng.creole_summary === "");
-const cre = await attachSummaries(runAriaAssessment({ metadata:{ language_preference:"creole" }}), null);
-ok("creole summary present", cre.creole_summary.length > 20);
+const cre = await attachSummaries(runAriaAssessment({ metadata:{ language_preference:"creole" }}), null, { lang: "creole" });
+ok("creole summary present", cre.plain_language_summary.length > 20);
 
 // determinism
 ok("deterministic", runAriaAssessment(scenarios.allMax).risk_profile.risk_score === runAriaAssessment(scenarios.allMax).risk_profile.risk_score);

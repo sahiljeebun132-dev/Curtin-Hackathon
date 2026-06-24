@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useT } from "../i18n.js";
 import { useRole } from "../role.js";
+import { useLang } from "../i18n.js";
 import EmotionCapture from "./EmotionCapture.jsx";
 import Questionnaire from "./Questionnaire.jsx";
 import AssessmentResult from "./AssessmentResult.jsx";
@@ -18,20 +19,21 @@ function Stepper({ step }) {
   );
 }
 
-export default function AssessmentFlow({ seed, onResult }) {
+export default function AssessmentFlow({ seed, onResult, savedResult, onSaveResult }) {
   const t = useT();
   const { role } = useRole();
+  const { lang } = useLang();
   // a seeded (social-worker) check-in is ABOUT another person, so the camera
   // (which reads whoever is in front of the screen) is skipped.
-  const [step, setStep] = useState(seed ? "questionnaire" : "capture");
+  const [step, setStep] = useState(seed ? "questionnaire" : (savedResult ? "result" : "capture"));
   const [facial, setFacial] = useState(seed ? { face_detected: false, dominant_emotion: "n/a", confidence: 0, emotion_timeline: [] } : null);
-  const [result, setResult] = useState(null);
+  const [result, setResult] = useState(savedResult || null);
 
   async function handleQuestionnaire(formData) {
     setStep("processing");
     const assessment = runAriaAssessment({ ...formData, facial });
     const self = role === "patient" && !seed;
-    const withSummaries = await attachSummaries(assessment, null, { self });
+    const withSummaries = await attachSummaries(assessment, null, { self, lang });
     withSummaries._clinician = formData.metadata?.clinician_symptoms || [];
     withSummaries._eyeRedness = facial?.eye_redness || null;
     if (self) { try { localStorage.setItem("vela_last_level", withSummaries.risk_profile.overall_risk_level); } catch { /* ignore */ } }
@@ -39,10 +41,12 @@ export default function AssessmentFlow({ seed, onResult }) {
       setResult(withSummaries);
       setStep("result");
       onResult && onResult({ level: withSummaries.risk_profile.overall_risk_level, score: withSummaries.risk_profile.risk_score });
+      if (!seed && onSaveResult) onSaveResult(withSummaries);
     }, 1100);
   }
   function restart() {
     setResult(null);
+    if (!seed && onSaveResult) onSaveResult(null);
     setFacial(seed ? { face_detected: false, dominant_emotion: "n/a", confidence: 0, emotion_timeline: [] } : null);
     setStep(seed ? "questionnaire" : "capture");
   }

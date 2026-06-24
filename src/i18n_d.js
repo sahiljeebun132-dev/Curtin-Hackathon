@@ -1,6 +1,7 @@
 // Dashboard label translations (merged by useT, English fallback).
 export const D_DICT = {
   english: {
+    lvl_low: "Low concern", lvl_medium: "Worth a chat", lvl_high: "Priority support", lvl_crisis: "Immediate care", act_monitor: "Monitor", act_counsellor: "Counsellor session", act_ngo: "NGO referral", act_crisis: "Crisis intervention",
     nav_home: "Home", nav_assistant: "Assistant", d_hi: "Welcome back", d_morning: "Good morning", d_afternoon: "Good afternoon", d_evening: "Good evening", d_startstoday: "Your journey starts today - every day counts.", d_good: "You're doing well - one day at a time.",
     d_meds_today: "Today's medication", d_next_dose: "Next dose", d_checkin: "Start a check-in",
     d_support: "Find support", d_view_meds: "Medication", d_view_progress: "View progress",
@@ -11,6 +12,7 @@ export const D_DICT = {
     d_open_caseload: "Open full caseload", d_risk: "Risk",
   },
   french: {
+    lvl_low: "Faible inquietude", lvl_medium: "A surveiller", lvl_high: "Soutien prioritaire", lvl_crisis: "Soins immediats", act_monitor: "Surveiller", act_counsellor: "Seance de conseil", act_ngo: "Orientation ONG", act_crisis: "Intervention de crise",
     nav_home: "Accueil", nav_assistant: "Assistant", d_hi: "Bon retour", d_morning: "Bonjour", d_afternoon: "Bon apres-midi", d_evening: "Bonsoir", d_startstoday: "Votre parcours commence aujourd'hui - chaque jour compte.", d_good: "Vous faites du bon travail - un jour a la fois.",
     d_meds_today: "Medicaments du jour", d_next_dose: "Prochaine prise", d_checkin: "Commencer un bilan",
     d_support: "Trouver du soutien", d_view_meds: "Medicaments", d_view_progress: "Voir le parcours",
@@ -21,6 +23,7 @@ export const D_DICT = {
     d_open_caseload: "Ouvrir le suivi complet", d_risk: "Risque",
   },
   creole: {
+    lvl_low: "Pe risk", lvl_medium: "Bizin koze", lvl_high: "Sipor priorite", lvl_crisis: "Swin deswit", act_monitor: "Swiv", act_counsellor: "Sesion konsey", act_ngo: "Referans ONG", act_crisis: "Entervansion kriz",
     nav_home: "Lakey", nav_assistant: "Asistan", d_hi: "Bon retour", d_morning: "Bonzour", d_afternoon: "Bon apremidi", d_evening: "Bonswar", d_startstoday: "To parkour koumanse zordi - sak zour konte.", d_morning: "Bonjour", d_afternoon: "Bon apres-midi", d_evening: "Bonsoir", d_startstoday: "Votre parcours commence aujourd'hui - chaque jour compte.", d_good: "To pe fer bien - enn zour a lafwa.",
     d_meds_today: "Medikaman zordi", d_next_dose: "Prosin doz", d_checkin: "Komans enn bilan",
     d_support: "Trouv sipor", d_view_meds: "Medikaman", d_view_progress: "Get parkour",

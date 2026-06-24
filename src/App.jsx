@@ -10,6 +10,7 @@ import SosButton from "./components/SosButton.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import Assistant from "./components/Assistant.jsx";
 import { useMeds } from "./meds.js";
+import { stopSpeaking } from "./speak.js";
 import { useIdentity } from "./identity.js";
 import { INITIAL_CASELOAD } from "./data/caseload.js";
 
@@ -134,6 +135,7 @@ export default function App() {
   const [seed, setSeed] = useState(null);   // pre-filled check-in context
   const [nonce, setNonce] = useState(0);     // forces a fresh check-in
   const [caseload, setCaseload] = useState(INITIAL_CASELOAD);
+  const [assessment, setAssessment] = useState(null);
 
   const ALL = [
     ["home", t("nav_home")], ["checkin", t("nav_checkin")], ["meds", t("nav_meds")],
@@ -147,6 +149,7 @@ export default function App() {
   }, [role]);
 
   function openTab(k) {
+    stopSpeaking();
     if (k === "checkin") { setSeed(null); setNonce((n) => n + 1); } // manual = blank
     setTab(k);
   }
@@ -173,7 +176,7 @@ export default function App() {
 
       <div key={tab + role + nonce} className="fade-key">
         {tab === "home" && <Dashboard caseload={caseload} onNavigate={openTab} onStartCheckin={startCheckinFor} />}
-        {tab === "checkin" && <AssessmentFlow seed={seed} onResult={(sum) => seed && recordResult(seed.id, sum)} />}
+        {tab === "checkin" && <AssessmentFlow seed={seed} onResult={(sum) => seed && recordResult(seed.id, sum)} savedResult={!seed ? assessment : null} onSaveResult={setAssessment} />}
         {tab === "meds" && <Medication />}
         {tab === "support" && <Support />}
         {tab === "progress" && <Progress caseload={caseload} onStartCheckin={startCheckinFor} />}

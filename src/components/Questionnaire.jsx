@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useT, useLang } from "../i18n.js";
-import { speak } from "../speak.js";
+import { speak, stopSpeaking } from "../speak.js";
 import { BEHAVIOURAL_QUESTIONS, PROTECTIVE_QUESTIONS, appliesToAge } from "../aria/constants.js";
 import SymptomChecklist from "./SymptomChecklist.jsx";
 import { SYMPTOM_CATEGORIES } from "../data/symptoms.js";
@@ -48,7 +48,8 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
   const N = PAGES.length;
   const cur = PAGES[page];
   const last = page === N - 1;
-  const toTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+  useEffect(() => () => stopSpeaking(), []);
+  const toTop = () => { stopSpeaking(); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const next = () => { setPage((p) => Math.min(p + 1, N - 1)); toTop(); };
   const back = () => { setPage((p) => Math.max(p - 1, 0)); toTop(); };
 
