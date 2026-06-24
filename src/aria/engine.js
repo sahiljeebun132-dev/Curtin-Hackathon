@@ -16,7 +16,7 @@
 // ===================================================================
 
 import {
-  BEHAVIOURAL_QUESTIONS, PROTECTIVE_QUESTIONS, RAW_MAX,
+  BEHAVIOURAL_QUESTIONS, PROTECTIVE_QUESTIONS, appliesToAge,
   EMOTION_WEIGHTS, FACIAL_CONTRIBUTION_CAP, HIGH_RISK_ZONES,
   AGE_VULNERABILITY, REFERRER_ENV_WEIGHT, SUBSTANCE_RULES,
   POLY_SUBSTANCE, RISK_BANDS, READINESS_STAGES,
@@ -32,10 +32,17 @@ const ans = (answers, id) => Number(answers?.[id] ?? 0); // safe 0-default
 const normalise = (raw, rawMax, target) => (rawMax === 0 ? 0 : (raw / rawMax) * target);
 
 // ---- 1. BEHAVIOURAL sub-score (0-25) --------------------------------
-function behaviouralScore(answers) {
-  const ids = BEHAVIOURAL_QUESTIONS.filter((q) => q.score === "behavioural").map((q) => q.id);
-  const raw = ids.reduce((s, id) => s + ans(answers, id), 0);
-  return clamp(normalise(raw, RAW_MAX.behavioural, 25), 0, 25);
+function groupItems(group, ageGroup) {
+  return BEHAVIOURAL_QUESTIONS.filter((q) => q.score === group && appliesToAge(q, ageGroup));
+}
+function groupRaw(answers, group, ageGroup) {
+  return groupItems(group, ageGroup).reduce((s, q) => s + ans(answers, q.id), 0);
+}
+function groupRawMax(group, ageGroup) {
+  return groupItems(group, ageGroup).length * 3;
+}
+function behaviouralScore(answers, ageGroup) {
+  return clamp(normalise(groupRaw(answers, "behavioural", ageGroup), groupRawMax("behavioural", ageGroup), 25), 0, 25);
 }
 
 // ---- 2. EMOTIONAL sub-score (0-25) = questionnaire (0-15) + face (0-10)
@@ -48,22 +55,19 @@ function facialContribution(facial) {
   return clamp(scaled, 0, FACIAL_CONTRIBUTION_CAP);
 }
 
-function emotionalScore(answers, facial) {
-  const ids = BEHAVIOURAL_QUESTIONS.filter((q) => q.score === "emotional").map((q) => q.id);
-  const raw = ids.reduce((s, id) => s + ans(answers, id), 0);
+function emotionalScore(answers, facial, ageGroup) {
+  const raw = groupRaw(answers, "emotional", ageGroup);
+  const rawMax = groupRawMax("emotional", ageGroup);
   const face = facialContribution(facial); // 0-10
   const hasFace = !!(facial && facial.face_detected);
-  // Without facial data the questionnaire alone can reach the full 25, so
-  // skipping the camera never lowers the emotional ceiling.
-  const questionnaire = normalise(raw, RAW_MAX.emotionalQuestionnaire, hasFace ? 15 : 25);
+  // Without facial data the questionnaire alone can reach the full 25.
+  const questionnaire = normalise(raw, rawMax, hasFace ? 15 : 25);
   return { total: clamp(questionnaire + face, 0, 25), face };
 }
 
 // ---- 3. PHYSICAL sub-score (0-25) -----------------------------------
-function physicalScore(answers) {
-  const ids = BEHAVIOURAL_QUESTIONS.filter((q) => q.score === "physical").map((q) => q.id);
-  const raw = ids.reduce((s, id) => s + ans(answers, id), 0);
-  return clamp(normalise(raw, RAW_MAX.physical, 25), 0, 25);
+function physicalScore(answers, ageGroup) {
+  return clamp(normalise(groupRaw(answers, "physical", ageGroup), groupRawMax("physical", ageGroup), 25), 0, 25);
 }
 
 // ---- 4. ENVIRONMENTAL sub-score (0-25) ------------------------------
@@ -231,9 +235,10 @@ export function runAriaAssessment(input = {}) {
   const substances = metadata.substances_mentioned ?? [];
 
   // --- sub-scores ---
-  const behavioural = behaviouralScore(answers);
-  const emo = emotionalScore(answers, facial);
-  const physical = physicalScore(answers);
+  const ageGroup = metadata.subject_age_group;
+  const behavioural = behaviouralScore(answers, ageGroup);
+  const emo = emotionalScore(answers, facial, ageGroup);
+  const physical = physicalScore(answers, ageGroup);
   const env = environmentalScore(input);
   const prot = protectiveDeduction(protective);
   const sub = substanceModifiers(substances);

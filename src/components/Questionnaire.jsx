@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useT } from "../i18n.js";
-import { BEHAVIOURAL_QUESTIONS, PROTECTIVE_QUESTIONS } from "../aria/constants.js";
+import { BEHAVIOURAL_QUESTIONS, PROTECTIVE_QUESTIONS, appliesToAge } from "../aria/constants.js";
 import SymptomChecklist from "./SymptomChecklist.jsx";
 import { SYMPTOM_CATEGORIES } from "../data/symptoms.js";
 
@@ -27,8 +27,7 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
   const [meta, setMeta] = useState(() => ({
     subject_age_group: "19_to_25", subject_gender: "prefer_not", geographic_zone: "",
     language_preference: "english", referrer_type: "self", children_in_household: false,
-    observer_notes: "", substances_text: "",
-    ...(initialMeta || {}),
+    observer_notes: "", substances_text: "", ...(initialMeta || {}),
   }));
   const setA = (id, v) => setAnswers((s) => ({ ...s, [id]: v }));
   const setP = (id, v) => setProtective((s) => ({ ...s, [id]: v }));
@@ -36,7 +35,8 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
   const toggleSym = (key) => setSymptoms((s) => ({ ...s, [key]: !s[key] }));
 
   const PAGES = [
-    { title: t("sec_daily"), tags: ["behavioural"] },
+    { title: t("sec_about"), kind: "about" },
+    { title: t("sec_substance"), tags: ["behavioural"], src: true },
     { title: t("sec_mood"), tags: ["emotional"] },
     { title: t("sec_phys"), tags: ["physical"] },
     { title: t("sec_fam") + " + " + t("sec_safety"), tags: ["environmental", "crisis"] },
@@ -60,10 +60,13 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
   }
 
   function renderQuestions(tags) {
-    const qs = BEHAVIOURAL_QUESTIONS.filter((q) => tags.includes(q.score));
+    const qs = BEHAVIOURAL_QUESTIONS.filter((q) => tags.includes(q.score) && appliesToAge(q, meta.subject_age_group));
     return qs.map((q) => (
       <div className="qrow" key={q.id}>
-        <span className="qlabel">{t("q_" + q.id)}{q.score === "crisis" && <span className="safeguard-tag">{t("sec_safety")}</span>}</span>
+        <span className="qlabel">{t("q_" + q.id)}
+          {q.source && q.source !== "general" && <span className="src-tag">{q.source}</span>}
+          {q.score === "crisis" && <span className="safeguard-tag">{t("sec_safety")}</span>}
+        </span>
         <Scale value={answers[q.id] ?? null} onChange={(v) => setA(q.id, v)} labels={B_LABELS} />
       </div>
     ));
@@ -74,23 +77,11 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
       <div className="eyebrow">{t("q_eyebrow")} &middot; {page + 1}/{N}</div>
       <h2>{cur.title}</h2>
       <div className="wiz-bar"><div className="wiz-fill" style={{ width: ((page + 1) / N) * 100 + "%" }} /></div>
-      {subjectLabel && <div className="callout" style={{ margin: "0 0 12px" }}><span className="small">Check-in for <strong>{subjectLabel}</strong> (from caseload) - prefilled where known.</span></div>}
-      {page === 0 && <p className="muted small">{t("q_sub")}</p>}
+      {subjectLabel && page === 0 && <div className="callout" style={{ margin: "0 0 12px" }}><span className="small">Check-in for <strong>{subjectLabel}</strong> (from caseload).</span></div>}
 
       <div className="fade-key" key={page}>
-        {cur.tags && renderQuestions(cur.tags)}
-
-        {cur.kind === "protective" && (<>
-          <p className="muted small">{t("strengths_note")}</p>
-          {PROTECTIVE_QUESTIONS.map((q) => (
-            <div className="qrow" key={q.id}>
-              <span className="qlabel">{t("p_" + q.id)}</span>
-              <Scale value={protective[q.id] ?? null} onChange={(v) => setP(q.id, v)} labels={P_LABELS} />
-            </div>
-          ))}
-        </>)}
-
-        {cur.kind === "context" && (<>
+        {cur.kind === "about" && (<>
+          <p className="muted small">This tailors the questions to the person's age. Adapted from validated screening tools (CRAFFT, DAST-10, AUDIT-C) - for screening, never a diagnosis.</p>
           <div className="grid2">
             <label className="field"><span>{t("ctx_age")}</span>
               <select value={meta.subject_age_group} onChange={(e) => setM("subject_age_group", e.target.value)}>
@@ -104,6 +95,26 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
                 <option value="ngo">{t("r_ngo")}</option><option value="counsellor">{t("r_counsellor")}</option><option value="anonymous">{t("r_anonymous")}</option>
               </select>
             </label>
+          </div>
+        </>)}
+
+        {cur.tags && (<>
+          {cur.src && <p className="tiny muted" style={{ marginTop: -2 }}>{appliesToAge({ applies: "youth" }, meta.subject_age_group) ? "CRAFFT (under 18)" : "DAST-10 & AUDIT-C (18+)"} · screening, not diagnosis</p>}
+          {renderQuestions(cur.tags)}
+        </>)}
+
+        {cur.kind === "protective" && (<>
+          <p className="muted small">{t("strengths_note")}</p>
+          {PROTECTIVE_QUESTIONS.map((q) => (
+            <div className="qrow" key={q.id}>
+              <span className="qlabel">{t("p_" + q.id)}</span>
+              <Scale value={protective[q.id] ?? null} onChange={(v) => setP(q.id, v)} labels={P_LABELS} />
+            </div>
+          ))}
+        </>)}
+
+        {cur.kind === "context" && (<>
+          <div className="grid2">
             <label className="field"><span>{t("ctx_area")}</span>
               <input value={meta.geographic_zone} onChange={(e) => setM("geographic_zone", e.target.value)} placeholder="e.g. Roche Bois" />
             </label>

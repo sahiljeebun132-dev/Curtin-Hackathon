@@ -1,0 +1,43 @@
+// Validated-instrument question text (paraphrased from CRAFFT / DAST-10 /
+// AUDIT-C - screening only, not diagnosis). Merged by useT, English fallback.
+export const Q2_DICT = {
+  english: {
+    q_craft_car: "Ridden in a vehicle driven by someone (including you) who had used alcohol or drugs",
+    q_craft_alone: "Used alcohol or drugs while by yourself",
+    q_craft_trouble: "Got into trouble while using alcohol or drugs",
+    q_craft_relax: "Used alcohol or drugs to relax, feel better about yourself, or fit in",
+    q_craft_forget: "Forgotten things you did while using alcohol or drugs",
+    q_dast_cantstop: "Been unable to stop using when you wanted to",
+    q_dast_neglect: "Neglected family, work, or studies because of substance use",
+    q_dast_guilt: "Felt bad or guilty about your substance use",
+    q_dast_withdrawal: "Felt unwell (withdrawal) when you stopped or cut down",
+    q_audit_alcohol: "Had 6 or more alcoholic drinks on one occasion",
+    sec_about: "About this person", sec_substance: "Substance use",
+  },
+  french: {
+    q_craft_car: "Monte dans un vehicule conduit par quelqu'un (vous y compris) ayant consomme alcool ou drogue",
+    q_craft_alone: "Consomme alcool ou drogue seul(e)",
+    q_craft_trouble: "Eu des ennuis en consommant alcool ou drogue",
+    q_craft_relax: "Consomme pour vous detendre, vous sentir mieux ou vous integrer",
+    q_craft_forget: "Oublie des choses faites pendant la consommation",
+    q_dast_cantstop: "Incapable d'arreter quand vous le vouliez",
+    q_dast_neglect: "Neglige la famille, le travail ou les etudes a cause de la consommation",
+    q_dast_guilt: "Senti coupable de votre consommation",
+    q_dast_withdrawal: "Ressenti un malaise (manque) en arretant ou en reduisant",
+    q_audit_alcohol: "Bu 6 verres d'alcool ou plus en une seule occasion",
+    sec_about: "A propos de cette personne", sec_substance: "Consommation",
+  },
+  creole: {
+    q_craft_car: "Monte dan enn vehikil ki enn dimoun (twa osi) ki ti pe servi lalkol ou ladrog pe kondir",
+    q_craft_alone: "Servi lalkol ou ladrog tousel",
+    q_craft_trouble: "Gagn problem pandan ki to pe servi lalkol ou ladrog",
+    q_craft_relax: "Servi pou relax, santi twa pli bien, ou pou rant dan group",
+    q_craft_forget: "Bliye seki to finn fer pandan ki to ti pe servi",
+    q_dast_cantstop: "Pa finn kapav arete kan to ti anvi arete",
+    q_dast_neglect: "Neglize fami, travay ou letid akoz konsomasion",
+    q_dast_guilt: "Santi twa koupab lor to konsomasion",
+    q_dast_withdrawal: "Santi twa malad (mank) kan to finn arete ou diminie",
+    q_audit_alcohol: "Bwar 6 ver lalkol ou plis dan enn sel fwa",
+    sec_about: "Lor sa dimoun la", sec_substance: "Konsomasion",
+  },
+};

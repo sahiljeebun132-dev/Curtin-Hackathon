@@ -252,3 +252,15 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .insight-fill { height: 100%; border-radius: 999px; transition: width .7s ease; }
 .insight-val { font-size: 12.5px; text-align: right; font-weight: 700; }
 @media (max-width: 560px) { .insight-row { grid-template-columns: 90px 1fr 76px; } }
+
+/* validated-instrument source tag */
+.src-tag { font-size: 10px; font-weight: 800; color: var(--primary-700); background: var(--primary-tint); border: 1px solid var(--primary-soft); border-radius: 999px; padding: 1px 7px; margin-left: 8px; vertical-align: middle; }
+
+/* assistant chat */
+.chat { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; max-height: 360px; overflow-y: auto; }
+.bubble { padding: 10px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; max-width: 90%; white-space: pre-wrap; }
+.bubble.bot { background: var(--surface-2); border: 1px solid var(--line); align-self: flex-start; border-bottom-left-radius: 4px; }
+.bubble.you { background: var(--primary-tint); border: 1px solid var(--primary-soft); color: var(--ink); align-self: flex-end; border-bottom-right-radius: 4px; }
+.chips-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.suggest { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 12.5px; font-weight: 600; color: var(--primary-700); cursor: pointer; }
+.suggest:hover { background: var(--primary-tint); }

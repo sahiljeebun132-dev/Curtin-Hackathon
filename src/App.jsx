@@ -8,6 +8,7 @@ import Progress from "./components/Progress.jsx";
 import Privacy from "./components/Privacy.jsx";
 import SosButton from "./components/SosButton.jsx";
 import Dashboard from "./components/Dashboard.jsx";
+import Assistant from "./components/Assistant.jsx";
 import { useMeds } from "./meds.js";
 import { useIdentity } from "./identity.js";
 import { INITIAL_CASELOAD } from "./data/caseload.js";
@@ -78,6 +79,7 @@ const TAB_ROLES = {
   meds: ["patient", "guardian"],
   support: ["patient", "guardian", "social"],
   progress: ["patient", "guardian", "social"],
+  assistant: ["guardian", "social"],
   privacy: ["patient", "guardian", "social"],
 };
 
@@ -92,7 +94,7 @@ export default function App() {
 
   const ALL = [
     ["home", t("nav_home")], ["checkin", t("nav_checkin")], ["meds", t("nav_meds")],
-    ["support", t("nav_support")], ["progress", t("nav_progress")], ["privacy", t("nav_privacy")],
+    ["support", t("nav_support")], ["progress", t("nav_progress")], ["assistant", t("nav_assistant")], ["privacy", t("nav_privacy")],
   ];
   const visible = ALL.filter(([k]) => TAB_ROLES[k].includes(role));
 
@@ -131,6 +133,7 @@ export default function App() {
         {tab === "meds" && <Medication />}
         {tab === "support" && <Support />}
         {tab === "progress" && <Progress caseload={caseload} onStartCheckin={startCheckinFor} />}
+        {tab === "assistant" && <Assistant caseload={caseload} />}
         {tab === "privacy" && <Privacy />}
       </div>
 
