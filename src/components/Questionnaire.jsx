@@ -16,7 +16,7 @@ function Scale({ value, onChange, labels }) {
   );
 }
 
-export default function Questionnaire({ onSubmit }) {
+export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
   const t = useT();
   const B_LABELS = [t("scale0"), t("scale1"), t("scale2"), t("scale3")];
   const P_LABELS = [t("p0"), t("p1"), t("p2")];
@@ -24,11 +24,12 @@ export default function Questionnaire({ onSubmit }) {
   const [answers, setAnswers] = useState({});
   const [protective, setProtective] = useState({});
   const [symptoms, setSymptoms] = useState({});
-  const [meta, setMeta] = useState({
+  const [meta, setMeta] = useState(() => ({
     subject_age_group: "19_to_25", subject_gender: "prefer_not", geographic_zone: "",
     language_preference: "english", referrer_type: "self", children_in_household: false,
     observer_notes: "", substances_text: "",
-  });
+    ...(initialMeta || {}),
+  }));
   const setA = (id, v) => setAnswers((s) => ({ ...s, [id]: v }));
   const setP = (id, v) => setProtective((s) => ({ ...s, [id]: v }));
   const setM = (k, v) => setMeta((s) => ({ ...s, [k]: v }));
@@ -62,7 +63,7 @@ export default function Questionnaire({ onSubmit }) {
     const qs = BEHAVIOURAL_QUESTIONS.filter((q) => tags.includes(q.score));
     return qs.map((q) => (
       <div className="qrow" key={q.id}>
-        <span className="qlabel">{q.label}{q.score === "crisis" && <span className="safeguard-tag">{t("sec_safety")}</span>}</span>
+        <span className="qlabel">{t("q_" + q.id)}{q.score === "crisis" && <span className="safeguard-tag">{t("sec_safety")}</span>}</span>
         <Scale value={answers[q.id] ?? null} onChange={(v) => setA(q.id, v)} labels={B_LABELS} />
       </div>
     ));
@@ -73,16 +74,17 @@ export default function Questionnaire({ onSubmit }) {
       <div className="eyebrow">{t("q_eyebrow")} &middot; {page + 1}/{N}</div>
       <h2>{cur.title}</h2>
       <div className="wiz-bar"><div className="wiz-fill" style={{ width: ((page + 1) / N) * 100 + "%" }} /></div>
+      {subjectLabel && <div className="callout" style={{ margin: "0 0 12px" }}><span className="small">Check-in for <strong>{subjectLabel}</strong> (from caseload) - prefilled where known.</span></div>}
       {page === 0 && <p className="muted small">{t("q_sub")}</p>}
 
       <div className="fade-key" key={page}>
         {cur.tags && renderQuestions(cur.tags)}
 
         {cur.kind === "protective" && (<>
-          <p className="muted small">What's going well matters just as much.</p>
+          <p className="muted small">{t("strengths_note")}</p>
           {PROTECTIVE_QUESTIONS.map((q) => (
             <div className="qrow" key={q.id}>
-              <span className="qlabel">{q.label}</span>
+              <span className="qlabel">{t("p_" + q.id)}</span>
               <Scale value={protective[q.id] ?? null} onChange={(v) => setP(q.id, v)} labels={P_LABELS} />
             </div>
           ))}
@@ -90,31 +92,31 @@ export default function Questionnaire({ onSubmit }) {
 
         {cur.kind === "context" && (<>
           <div className="grid2">
-            <label className="field"><span>Age group</span>
+            <label className="field"><span>{t("ctx_age")}</span>
               <select value={meta.subject_age_group} onChange={(e) => setM("subject_age_group", e.target.value)}>
                 <option value="under_15">Under 15</option><option value="15_to_18">15-18</option>
                 <option value="19_to_25">19-25</option><option value="26_to_35">26-35</option><option value="36_plus">36+</option>
               </select>
             </label>
-            <label className="field"><span>Who is filling this in?</span>
+            <label className="field"><span>{t("ctx_referrer")}</span>
               <select value={meta.referrer_type} onChange={(e) => setM("referrer_type", e.target.value)}>
-                <option value="self">Myself</option><option value="family">Family</option><option value="school">School</option>
-                <option value="ngo">NGO</option><option value="counsellor">Counsellor</option><option value="anonymous">Anonymous</option>
+                <option value="self">{t("r_self")}</option><option value="family">{t("r_family")}</option><option value="school">{t("r_school")}</option>
+                <option value="ngo">{t("r_ngo")}</option><option value="counsellor">{t("r_counsellor")}</option><option value="anonymous">{t("r_anonymous")}</option>
               </select>
             </label>
-            <label className="field"><span>Area / locality</span>
+            <label className="field"><span>{t("ctx_area")}</span>
               <input value={meta.geographic_zone} onChange={(e) => setM("geographic_zone", e.target.value)} placeholder="e.g. Roche Bois" />
             </label>
-            <label className="field"><span>Substances mentioned</span>
+            <label className="field"><span>{t("ctx_subs")}</span>
               <input value={meta.substances_text} onChange={(e) => setM("substances_text", e.target.value)} placeholder="e.g. alcohol, sousou" />
             </label>
-            <label className="check"><input type="checkbox" checked={meta.children_in_household} onChange={(e) => setM("children_in_household", e.target.checked)} /> Children live in the home</label>
+            <label className="check"><input type="checkbox" checked={meta.children_in_household} onChange={(e) => setM("children_in_household", e.target.checked)} /> {t("ctx_children")}</label>
           </div>
-          <label className="field"><span>Anything else worth sharing?</span>
-            <textarea rows={3} value={meta.observer_notes} onChange={(e) => setM("observer_notes", e.target.value)} placeholder="In your own words - Kreol is understood too." />
+          <label className="field"><span>{t("ctx_more")}</span>
+            <textarea rows={3} value={meta.observer_notes} onChange={(e) => setM("observer_notes", e.target.value)} />
           </label>
           {meta.referrer_type !== "self" && (<>
-            <h3>Signs someone has noticed</h3>
+            <h3>{t("signs_title")}</h3>
             <SymptomChecklist checked={symptoms} onToggle={toggleSym} />
           </>)}
         </>)}
@@ -122,12 +124,11 @@ export default function Questionnaire({ onSubmit }) {
 
       <div className="divider" />
       <div className="row">
-        {page > 0 && <button type="button" className="btn soft" onClick={back}>&larr; Back</button>}
+        {page > 0 && <button type="button" className="btn soft" onClick={back}>&larr; {t("nav_back")}</button>}
         {last
           ? <button type="submit" className="btn" style={{ flex: 1 }}>{t("submit")}</button>
-          : <button type="button" className="btn" style={{ flex: 1 }} onClick={next}>Next &rarr;</button>}
+          : <button type="button" className="btn" style={{ flex: 1 }} onClick={next}>{t("nav_next")} &rarr;</button>}
       </div>
-      {last && <p className="tiny muted" style={{ textAlign: "center", marginTop: 12 }}>This creates a support flag for a trained person - never an automatic decision.</p>}
     </form>
   );
 }

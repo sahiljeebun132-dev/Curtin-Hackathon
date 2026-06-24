@@ -3,6 +3,7 @@
 // useT() returns a translator; falls back to English, then the key.
 // ===================================================================
 import { createContext, useContext, useState, createElement } from "react";
+import { Q_DICT } from "./i18n_q.js";
 
 export const LANGS = { english: "English", french: "Francais", creole: "Kreol" };
 
@@ -134,5 +135,5 @@ export function LangProvider({ children }) {
 export function useLang() { return useContext(LangCtx); }
 export function useT() {
   const { lang } = useContext(LangCtx);
-  return (k) => (DICT[lang] && DICT[lang][k]) ?? DICT.english[k] ?? k;
+  return (k) => DICT[lang]?.[k] ?? Q_DICT[lang]?.[k] ?? DICT.english[k] ?? Q_DICT.english[k] ?? k;
 }

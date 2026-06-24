@@ -6,23 +6,23 @@ import AssessmentResult from "./AssessmentResult.jsx";
 import { runAriaAssessment } from "../aria/engine.js";
 import { attachSummaries } from "../aria/summaries.js";
 
-const STEPS = ["welcome", "capture", "questionnaire", "result"];
+const STEPS = ["capture", "questionnaire", "result"];
 
 function Stepper({ step }) {
   const idx = STEPS.indexOf(step === "processing" ? "questionnaire" : step);
   return (
     <div className="stepper" aria-hidden="true">
-      {STEPS.map((s, i) => (
-        <div key={s} className={"dot " + (i < idx ? "done" : i === idx ? "active" : "")} />
-      ))}
+      {STEPS.map((s, i) => (<div key={s} className={"dot " + (i < idx ? "done" : i === idx ? "active" : "")} />))}
     </div>
   );
 }
 
-export default function AssessmentFlow() {
+export default function AssessmentFlow({ seed, onResult }) {
   const t = useT();
-  const [step, setStep] = useState("welcome");
-  const [facial, setFacial] = useState(null);
+  // a seeded (social-worker) check-in is ABOUT another person, so the camera
+  // (which reads whoever is in front of the screen) is skipped.
+  const [step, setStep] = useState(seed ? "questionnaire" : "capture");
+  const [facial, setFacial] = useState(seed ? { face_detected: false, dominant_emotion: "n/a", confidence: 0, emotion_timeline: [] } : null);
   const [result, setResult] = useState(null);
 
   async function handleQuestionnaire(formData) {
@@ -30,35 +30,29 @@ export default function AssessmentFlow() {
     const assessment = runAriaAssessment({ ...formData, facial });
     const withSummaries = await attachSummaries(assessment, null);
     withSummaries._clinician = formData.metadata?.clinician_symptoms || [];
-    setTimeout(() => { setResult(withSummaries); setStep("result"); }, 1100);
+    setTimeout(() => {
+      setResult(withSummaries);
+      setStep("result");
+      onResult && onResult({ level: withSummaries.risk_profile.overall_risk_level, score: withSummaries.risk_profile.risk_score });
+    }, 1100);
   }
-  function restart() { setFacial(null); setResult(null); setStep("welcome"); }
+  function restart() {
+    setResult(null);
+    setFacial(seed ? { face_detected: false, dominant_emotion: "n/a", confidence: 0, emotion_timeline: [] } : null);
+    setStep(seed ? "questionnaire" : "capture");
+  }
 
   return (
     <>
       <Stepper step={step} />
       <div key={step} className="fade-key">
-        {step === "welcome" && (
-          <section className="card">
-            <div className="eyebrow">{t("welcome_eyebrow")}</div>
-            <h1>{t("welcome_title")}</h1>
-            <p className="lead">{t("welcome_lead")}</p>
-            <div className="trust">
-              <span>{t("trust_device")}</span><span>{t("trust_cam")}</span>
-              <span>{t("trust_human")}</span><span>{t("trust_store")}</span>
-            </div>
-            <div className="divider" />
-            <button className="btn full" onClick={() => setStep("capture")}>{t("begin")}</button>
-            <p className="tiny muted" style={{ marginTop: 14, textAlign: "center" }}>{t("danger_line")}</p>
-          </section>
-        )}
         {step === "capture" && (
           <EmotionCapture
             onComplete={(f) => { setFacial(f); setStep("questionnaire"); }}
             onSkip={() => { setFacial({ face_detected: false, dominant_emotion: "n/a", confidence: 0, emotion_timeline: [] }); setStep("questionnaire"); }}
           />
         )}
-        {step === "questionnaire" && <Questionnaire onSubmit={handleQuestionnaire} />}
+        {step === "questionnaire" && <Questionnaire onSubmit={handleQuestionnaire} initialMeta={seed?.meta} subjectLabel={seed?.label} />}
         {step === "processing" && (
           <section className="card processing">
             <div className="breathe" aria-hidden="true"><div /></div>

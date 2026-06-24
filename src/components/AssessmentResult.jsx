@@ -56,7 +56,7 @@ export default function AssessmentResult({ result, onRestart }) {
         </div>
       </div>
 
-      {r.flags.crisis_flag && (<div className="crisis-banner"><strong>Please act now</strong><p className="small" style={{ marginBottom: 0 }}>{r.crisis_message}</p></div>)}
+      {r.flags.crisis_flag && (<div className="crisis-banner"><strong>{t("res_actnow")}</strong><p className="small" style={{ marginBottom: 0 }}>{r.crisis_message}</p></div>)}
 
       <h3>{t("res_saying")}</h3>
       <p className="lead" style={{ fontSize: 15.5 }}>{r.plain_language_summary}</p>
@@ -69,11 +69,11 @@ export default function AssessmentResult({ result, onRestart }) {
         <div className="contact">{r.intervention.primary_referral.contact}</div>
         <div className="muted small">{r.intervention.primary_referral.reason}</div>
       </div>
-      <div className="callout"><span className="small"><strong>For the conversation:</strong> {r.intervention.stigma_sensitive_note}</span></div>
+      <div className="callout"><span className="small"><strong>{t("res_conversation")}</strong> {r.intervention.stigma_sensitive_note}</span></div>
 
       {clinician.length > 0 && (
         <>
-          <h3>Possible categories to verify</h3>
+          <h3>{t("res_categories")}</h3>
           <p className="tiny muted" style={{ marginTop: -6 }}>From observed signs only - for a clinician to confirm. This is NOT a diagnosis or a claim of use.</p>
           {clinician.map((c) => (<div className="callout" key={c.id}><span className="small"><strong>{c.label}</strong> - {c.hits} observed sign(s) noted</span></div>))}
         </>

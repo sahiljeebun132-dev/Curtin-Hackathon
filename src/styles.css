@@ -191,3 +191,39 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 /* questionnaire wizard progress */
 .wiz-bar { height: 6px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; margin: 4px 0 14px; }
 .wiz-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #2cc0ae); transition: width .4s cubic-bezier(.22,1,.36,1); }
+
+/* medication dose rows - clear feedback when marking */
+.dose-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dose-btn { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink-soft); font: inherit; font-weight: 700; font-size: 13px; padding: 7px 12px; border-radius: 10px; cursor: pointer; transition: all .15s; }
+.dose-btn:hover { border-color: var(--primary-soft); }
+.dose-btn.taken { background: var(--low-soft); color: var(--low); border-color: var(--low); }
+.dose-btn.missed { background: var(--crisis-soft); color: var(--crisis); border-color: var(--crisis); }
+.dose-status { font-size: 12px; font-weight: 800; }
+.dose-status.taken { color: var(--low); } .dose-status.missed { color: var(--crisis); }
+
+/* topbar role selector (simulated login) */
+.topbar-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.role-select { display: inline-flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 12px; box-shadow: var(--shadow-sm); color: var(--primary-700); }
+.role-select select { border: none; background: transparent; font: inherit; font-weight: 700; font-size: 12.5px; color: var(--ink); padding: 2px 2px; cursor: pointer; }
+.role-select select:focus { outline: none; box-shadow: none; }
+
+/* colourful medication cards */
+.med-card { border: 1px solid var(--line); border-left: 5px solid var(--accent, var(--primary)); border-radius: 16px; padding: 14px 16px; margin: 12px 0; background: linear-gradient(180deg, #fff, var(--surface-2)); box-shadow: var(--shadow-sm); }
+.med-head { display: flex; align-items: center; gap: 12px; }
+.med-icon { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; font-size: 19px; flex: none; box-shadow: var(--shadow-sm); }
+
+/* social-worker caseload */
+.case-row { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 14px; margin: 8px 0; cursor: pointer; transition: all .15s; background: var(--surface); }
+.case-row:hover { border-color: var(--primary-soft); background: var(--primary-tint); }
+.case-row.on { border-color: var(--primary); box-shadow: var(--ring); }
+.case-ava { width: 40px; height: 40px; border-radius: 12px; flex: none; display: grid; place-items: center; color: #fff; font-family: var(--font-head); font-weight: 800; font-size: 13px; }
+.case-name { font-family: var(--font-head); font-weight: 700; }
+.case-pill { font-size: 11.5px; font-weight: 800; border: 1.5px solid; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+
+/* caseload search + sort toolbar */
+.case-toolbar { display: flex; gap: 8px; margin: 4px 0 10px; flex-wrap: wrap; }
+.case-search { flex: 1; min-width: 160px; }
+.case-toolbar select { flex: none; max-width: 220px; }
+
+/* "updated" badge after a check-in writes back */
+.upd-badge { font-size: 10px; font-weight: 800; color: var(--primary-700); background: var(--primary-tint); border: 1px solid var(--primary-soft); border-radius: 999px; padding: 2px 7px; margin-left: 8px; vertical-align: middle; }
