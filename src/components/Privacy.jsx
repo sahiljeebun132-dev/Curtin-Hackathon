@@ -18,6 +18,12 @@ export default function Privacy() {
       <div className="callout"><span className="small"><strong>Data minimisation.</strong> Collect the least needed, delete on a schedule, and keep identity data separate from health data.</span></div>
       <div className="callout"><span className="small"><strong>Compliance.</strong> Aligned to the Mauritius Data Protection Act 2017 and GDPR principles. No data sold, no third-party sharing without explicit consent.</span></div>
 
+      <h3>How identity works here - no national ID</h3>
+      <div className="callout"><span className="small"><strong>Pseudonymous.</strong> People choose a nickname and we generate an anonymous ID. No real name, no national ID, no registry of users.</span></div>
+      <div className="callout"><span className="small"><strong>One-way fingerprints.</strong> If a phone is given to prevent duplicates, it is hashed (SHA-256) and the number is discarded - only the fingerprint is kept.</span></div>
+      <div className="callout"><span className="small"><strong>Staff-only verification.</strong> Patients stay anonymous with no login. Only guardians and social workers verify (a staff code here; a secure backend in production).</span></div>
+      <div className="callout"><span className="small"><strong>Aggregate areas only.</strong> The map shows anonymous totals per area to guide outreach - never a list of individuals.</span></div>
+
       <h3>Why we did NOT bolt ID + biometrics onto a website</h3>
       <p className="small muted">Storing the national IDs, faces and locations of vulnerable people is the most sensitive database imaginable. Doing that safely needs a hardened backend, not a static site - so this POC deliberately keeps that data out until the secure infrastructure exists. Protecting people matters more than a flashy feature.</p>
     </section>

@@ -4,6 +4,7 @@
 // ===================================================================
 import { createContext, useContext, useState, createElement } from "react";
 import { Q_DICT } from "./i18n_q.js";
+import { D_DICT } from "./i18n_d.js";
 
 export const LANGS = { english: "English", french: "Francais", creole: "Kreol" };
 
@@ -135,5 +136,5 @@ export function LangProvider({ children }) {
 export function useLang() { return useContext(LangCtx); }
 export function useT() {
   const { lang } = useContext(LangCtx);
-  return (k) => DICT[lang]?.[k] ?? Q_DICT[lang]?.[k] ?? DICT.english[k] ?? Q_DICT.english[k] ?? k;
+  return (k) => DICT[lang]?.[k] ?? Q_DICT[lang]?.[k] ?? D_DICT[lang]?.[k] ?? DICT.english[k] ?? Q_DICT.english[k] ?? D_DICT.english[k] ?? k;
 }
