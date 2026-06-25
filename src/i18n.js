@@ -8,6 +8,7 @@ import { D_DICT } from "./i18n_d.js";
 import { Q2_DICT } from "./i18n_q2.js";
 import { X_DICT } from "./i18n_x.js";
 import { QS_DICT } from "./i18n_qs.js";
+import { U_DICT } from "./i18n_ui.js";
 
 export const LANGS = { english: "English", french: "Francais", creole: "Kreol" };
 
@@ -139,5 +140,5 @@ export function LangProvider({ children }) {
 export function useLang() { return useContext(LangCtx); }
 export function useT() {
   const { lang } = useContext(LangCtx);
-  return (k) => DICT[lang]?.[k] ?? Q_DICT[lang]?.[k] ?? Q2_DICT[lang]?.[k] ?? X_DICT[lang]?.[k] ?? QS_DICT[lang]?.[k] ?? D_DICT[lang]?.[k] ?? DICT.english[k] ?? Q_DICT.english[k] ?? Q2_DICT.english[k] ?? X_DICT.english[k] ?? QS_DICT.english[k] ?? D_DICT.english[k] ?? k;
+  return (k) => DICT[lang]?.[k] ?? Q_DICT[lang]?.[k] ?? Q2_DICT[lang]?.[k] ?? X_DICT[lang]?.[k] ?? QS_DICT[lang]?.[k] ?? U_DICT[lang]?.[k] ?? D_DICT[lang]?.[k] ?? DICT.english[k] ?? Q_DICT.english[k] ?? Q2_DICT.english[k] ?? X_DICT.english[k] ?? QS_DICT.english[k] ?? U_DICT.english[k] ?? D_DICT.english[k] ?? k;
 }

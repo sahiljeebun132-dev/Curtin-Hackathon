@@ -19,10 +19,10 @@ export default function Support() {
     AWARENESS_ZONES.forEach((z) => {
       const r = 8 + (z.count / maxCount) * 16; // size by anonymous aggregate count
       L.circleMarker([z.lat, z.lng], { radius: r, color: color(z.level), fillColor: color(z.level), fillOpacity: 0.35, weight: 2 })
-        .addTo(map).bindPopup(`<b>${z.name}</b><br/>${z.count} check-ins · ${z.high} higher-risk<br/><i>anonymous totals</i>`);
+        .addTo(map).bindPopup(`<b>${z.name}</b><br/>${z.count} ${t("sup_checkins")} · ${z.high} ${t("sup_higher")}<br/><i>${t("sup_anon")}</i>`);
     });
     SERVICE_POINTS.forEach((s) => {
-      L.circleMarker([s.lat, s.lng], { radius: 9, color: "#0e9488", fillColor: "#0e9488", fillOpacity: 0.8, weight: 2 }).addTo(map).bindPopup(`<b>${s.name}</b><br/>Support service`);
+      L.circleMarker([s.lat, s.lng], { radius: 9, color: "#0e9488", fillColor: "#0e9488", fillOpacity: 0.8, weight: 2 }).addTo(map).bindPopup(`<b>${s.name}</b><br/>${t("sup_leg_service")}`);
     });
     setTimeout(() => map.invalidateSize(), 200);
   }, [maxCount]);
@@ -38,18 +38,18 @@ export default function Support() {
       <h3>{t("support_map")}</h3>
       <div id="map" ref={elRef} />
       <div className="legend">
-        <span><i style={{ background: "#d83a3a" }} /> Higher-risk zone</span>
-        <span><i style={{ background: "#c98510" }} /> Watch zone</span>
-        <span><i style={{ background: "#0e9488" }} /> Support service</span>
+        <span><i style={{ background: "#d83a3a" }} /> {t("sup_leg_high")}</span>
+        <span><i style={{ background: "#c98510" }} /> {t("sup_leg_watch")}</span>
+        <span><i style={{ background: "#0e9488" }} /> {t("sup_leg_service")}</span>
       </div>
-      <p className="tiny muted" style={{ marginTop: 8 }}>{t("support_map_note")} Marker size = number of check-ins (anonymous totals, never individuals).</p>
+      <p className="tiny muted" style={{ marginTop: 8 }}>{t("support_map_note")} {t("sup_marker")}</p>
 
-      <h3>Area insights (anonymous)</h3>
+      <h3>{t("sup_area_insights")}</h3>
       {zones.map((z) => (
         <div key={z.name} className="insight-row">
           <span className="insight-name">{z.name}</span>
           <div className="insight-bar"><div className="insight-fill" style={{ width: (z.count / maxCount) * 100 + "%", background: z.level === "high" ? "#d83a3a" : "#c98510" }} /></div>
-          <span className="insight-val">{z.count} <span className="muted">({z.high} high)</span></span>
+          <span className="insight-val">{z.count} <span className="muted">({z.high} {t("sup_high_short")})</span></span>
         </div>
       ))}
 
@@ -57,7 +57,7 @@ export default function Support() {
       {SUPPORT_GROUPS.map((g) => (
         <div className="group-item" key={g.name}>
           <div className="g-top">
-            <span className="g-name">{g.name} {g.verified ? <span className="badge-v">verified</span> : <span className="badge-u">confirm</span>}</span>
+            <span className="g-name">{g.name} {g.verified ? <span className="badge-v">{t("sup_verified")}</span> : <span className="badge-u">{t("sup_confirm")}</span>}</span>
             <span className="g-contact">{g.contact}</span>
           </div>
           <div className="muted small">{g.type} - {g.note}</div>

@@ -1,15 +1,14 @@
+import { useT } from "../i18n.js";
 import { SYMPTOM_CATEGORIES } from "../data/symptoms.js";
 
 // Shown only to an observer (family / counsellor / NGO), never asked of the
 // patient about themselves. Plain language, fully optional, NON-DIAGNOSTIC.
 export default function SymptomChecklist({ checked, onToggle }) {
+  const t = useT();
   return (
     <details className="sym-cat">
-      <summary>Signs someone has actually noticed (optional)</summary>
-      <p className="tiny muted" style={{ marginTop: 8 }}>
-        Only tick what has really been seen - it is completely fine to skip this. It just gives a
-        professional a little extra context to consider, and is never a diagnosis.
-      </p>
+      <summary>{t("sc_summary")}</summary>
+      <p className="tiny muted" style={{ marginTop: 8 }}>{t("sc_note")}</p>
       {SYMPTOM_CATEGORIES.map((cat) => (
         <details className="sym-cat" key={cat.id}>
           <summary>{cat.label}</summary>

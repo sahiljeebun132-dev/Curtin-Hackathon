@@ -61,13 +61,13 @@ function RoleSelect() {
       {pending && (
         <div className="modal-back" onClick={() => setPending(null)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Staff access</h2>
-            <p className="muted small">Guardian and social-worker views are for verified staff. Patients stay anonymous - no login needed.</p>
-            <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Staff access code" style={{ marginTop: 8 }} />
-            {err && <p className="tiny" style={{ color: "var(--crisis)" }}>Incorrect code.</p>}
-            <p className="tiny muted">Demo code: VELA-STAFF</p>
-            <button className="btn full" onClick={submit} style={{ marginTop: 8 }}>Verify &amp; continue</button>
-            <button className="btn soft full" onClick={() => setPending(null)} style={{ marginTop: 8 }}>Cancel</button>
+            <h2>{t("app_staff_h")}</h2>
+            <p className="muted small">{t("app_staff_p")}</p>
+            <input value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("app_staff_ph")} style={{ marginTop: 8 }} />
+            {err && <p className="tiny" style={{ color: "var(--crisis)" }}>{t("app_staff_bad")}</p>}
+            <p className="tiny muted">{t("app_staff_demo")}</p>
+            <button className="btn full" onClick={submit} style={{ marginTop: 8 }}>{t("app_verify")}</button>
+            <button className="btn soft full" onClick={() => setPending(null)} style={{ marginTop: 8 }}>{t("app_cancel")}</button>
           </div>
         </div>
       )}
@@ -76,6 +76,7 @@ function RoleSelect() {
 }
 
 function InstallButton() {
+  const t = useT();
   const [prompt, setPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
   const [tip, setTip] = useState(false);
@@ -92,13 +93,13 @@ function InstallButton() {
   async function click() { if (prompt) { prompt.prompt(); await prompt.userChoice; setPrompt(null); } else setTip(true); }
   return (
     <>
-      <button className="install-btn" onClick={click} aria-label="Install app">&#x2B07; Install</button>
+      <button className="install-btn" onClick={click} aria-label={t("app_install_btn")}>&#x2B07; {t("app_install_btn")}</button>
       {tip && (
         <div className="modal-back" onClick={() => setTip(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2>Install VELA</h2>
-            <p className="small muted">On iPhone/iPad: tap the Share icon, then <strong>Add to Home Screen</strong>. On Android/desktop Chrome or Edge, use the install icon in the address bar.</p>
-            <button className="btn full" onClick={() => setTip(false)}>Got it</button>
+            <h2>{t("app_install_h")}</h2>
+            <p className="small muted">{t("app_install_p1")} <strong>{t("app_install_addhome")}</strong>{t("app_install_p2")}</p>
+            <button className="btn full" onClick={() => setTip(false)}>{t("app_install_got")}</button>
           </div>
         </div>
       )}

@@ -90,15 +90,15 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
       <div className="eyebrow">{t("q_eyebrow")} &middot; {page + 1}/{N}</div>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}><h2 style={{ margin: 0 }}>{cur.title}</h2><button type="button" className="btn soft" style={{ padding: "5px 11px", flex: "none" }} onClick={readPage}>🔊</button></div>
       <div className="wiz-bar"><div className="wiz-fill" style={{ width: ((page + 1) / N) * 100 + "%" }} /></div>
-      {subjectLabel && page === 0 && <div className="callout" style={{ margin: "0 0 12px" }}><span className="small">Check-in for <strong>{subjectLabel}</strong> (from caseload).</span></div>}
+      {subjectLabel && page === 0 && <div className="callout" style={{ margin: "0 0 12px" }}><span className="small">{t("qn_checkin_for")} <strong>{subjectLabel}</strong> {t("qn_from_caseload")}</span></div>}
 
       <div className="fade-key" key={page}>
         {cur.kind === "about" && (<>
-          <p className="muted small">This tailors the questions to the person's age. Adapted from validated screening tools (CRAFFT, DAST-10, AUDIT-C) - for screening, never a diagnosis.</p>
+          <p className="muted small">{t("qn_about_note")}</p>
           <div className="grid2">
             <label className="field"><span>{t("ctx_age")}</span>
               <select value={meta.subject_age_group} onChange={(e) => setM("subject_age_group", e.target.value)}>
-                <option value="under_15">Under 15</option><option value="15_to_18">15-18</option>
+                <option value="under_15">{t("qn_age_u15")}</option><option value="15_to_18">15-18</option>
                 <option value="19_to_25">19-25</option><option value="26_to_35">26-35</option><option value="36_plus">36+</option>
               </select>
             </label>
@@ -112,7 +112,7 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
         </>)}
 
         {cur.tags && (<>
-          {cur.src && <p className="tiny muted" style={{ marginTop: -2 }}>{appliesToAge({ applies: "youth" }, meta.subject_age_group) ? "CRAFFT (under 18)" : "DAST-10 & AUDIT-C (18+)"} · screening, not diagnosis</p>}
+          {cur.src && <p className="tiny muted" style={{ marginTop: -2 }}>{appliesToAge({ applies: "youth" }, meta.subject_age_group) ? t("qn_src_youth") : t("qn_src_adult")} · {t("qn_src_note")}</p>}
           {renderQuestions(cur.tags)}
         </>)}
 
@@ -129,10 +129,10 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
         {cur.kind === "context" && (<>
           <div className="grid2">
             <label className="field"><span>{t("ctx_area")}</span>
-              <input value={meta.geographic_zone} onChange={(e) => setM("geographic_zone", e.target.value)} placeholder="e.g. Roche Bois" />
+              <input value={meta.geographic_zone} onChange={(e) => setM("geographic_zone", e.target.value)} placeholder={t("qn_area_ph")} />
             </label>
             <label className="field"><span>{t("ctx_subs")}</span>
-              <input value={meta.substances_text} onChange={(e) => setM("substances_text", e.target.value)} placeholder="e.g. alcohol, sousou" />
+              <input value={meta.substances_text} onChange={(e) => setM("substances_text", e.target.value)} placeholder={t("qn_subs_ph")} />
             </label>
             <label className="check"><input type="checkbox" checked={meta.children_in_household} onChange={(e) => setM("children_in_household", e.target.checked)} /> {t("ctx_children")}</label>
           </div>

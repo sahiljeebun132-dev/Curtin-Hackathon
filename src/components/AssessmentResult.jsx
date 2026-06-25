@@ -66,14 +66,14 @@ export default function AssessmentResult({ result, onRestart }) {
       </div>
 
       <div className="row no-print" style={{ marginTop: 12 }}>
-        <button type="button" className="btn soft" onClick={() => speak(`${r.plain_language_summary} ${r.creole_summary || ""}`, lang)}>🔊 Read aloud</button>
-        <button type="button" className="btn soft" onClick={() => window.print()}>🖨 Print / Save PDF</button>
+        <button type="button" className="btn soft" onClick={() => speak(`${r.plain_language_summary} ${r.creole_summary || ""}`, lang)}>🔊 {t("res_readaloud")}</button>
+        <button type="button" className="btn soft" onClick={() => window.print()}>🖨 {t("res_print")}</button>
       </div>
       {r.flags.crisis_flag && (<div className="crisis-banner"><strong>{t("res_actnow")}</strong><p className="small" style={{ marginBottom: 0 }}>{r.crisis_message}</p></div>)}
 
       <h3>{t("res_saying")}</h3>
       <p className="lead" style={{ fontSize: 15.5 }}>{r.plain_language_summary}</p>
-      {r.creole_summary && (<div className="callout warm"><strong className="small">An Kreol</strong><p className="small" style={{ margin: "4px 0 0" }}>{r.creole_summary}</p></div>)}
+      {r.creole_summary && (<div className="callout warm"><strong className="small">{t("res_ankreol")}</strong><p className="small" style={{ margin: "4px 0 0" }}>{r.creole_summary}</p></div>)}
 
       <h3>{t("res_step")}</h3>
       {fastTrack && <div className="fasttrack-badge">{t("fasttrack")}</div>}
@@ -85,13 +85,13 @@ export default function AssessmentResult({ result, onRestart }) {
       <div className="callout"><span className="small"><strong>{t("res_conversation")}</strong> {r.intervention.stigma_sensitive_note}</span></div>
 
       {r._eyeCheck && (r._eyeCheck.redness || r._eyeCheck.openness) && (
-        <div className="callout warm"><span className="small"><strong>Eye check (observation):</strong> redness {r._eyeCheck.redness?.elevated ? "appeared elevated" : "looked normal"}{r._eyeCheck.openness ? `, eyes ${r._eyeCheck.openness.state}` : ""}. This is a surface read of the visible eye (many everyday causes - tiredness, screens, allergies) for a clinician to consider - <strong>not a retina scan or diagnosis</strong>, and it does not change the score.</span></div>
+        <div className="callout warm"><span className="small"><strong>{t("res_eye_h")}</strong> {t("ec_redness").toLowerCase()} {r._eyeCheck.redness?.elevated ? t("res_eye_elev") : t("res_eye_norm")}{r._eyeCheck.openness ? `, ${t("res_eye_eyes")} ${r._eyeCheck.openness.state === "normal" ? t("res_eye_normal") : t("res_eye_droopy")}` : ""}. {t("res_eye_body")} <strong>{t("res_eye_nodiag")}</strong>{t("res_eye_noscore")}</span></div>
       )}
       {clinician.length > 0 && (
         <>
           <h3>{t("res_categories")}</h3>
-          <p className="tiny muted" style={{ marginTop: -6 }}>From observed signs only - for a clinician to confirm. This is NOT a diagnosis or a claim of use.</p>
-          {clinician.map((c) => (<div className="callout" key={c.id}><span className="small"><strong>{c.label}</strong> - {c.hits} observed sign(s) noted</span></div>))}
+          <p className="tiny muted" style={{ marginTop: -6 }}>{t("res_eye_clin_note")}</p>
+          {clinician.map((c) => (<div className="callout" key={c.id}><span className="small"><strong>{c.label}</strong> - {c.hits} {t("res_signs_noted")}</span></div>))}
         </>
       )}
 
@@ -109,14 +109,14 @@ export default function AssessmentResult({ result, onRestart }) {
         <Bar label={t("sec_phys")} value={b.physical} max={25} delay={320} />
         <Bar label={t("sec_fam")} value={b.environmental} max={25} delay={420} />
       </div>
-      <p className="tiny muted">Strengths -{b.protective_deduction} / substances +{b.substance_modifier}.</p>
+      <p className="tiny muted">{t("res_strengths_subs").replace("{prot}", b.protective_deduction).replace("{sub}", b.substance_modifier)}</p>
 
       <h3>{t("res_flags")}</h3>
       {Object.entries(r.flags).filter(([, v]) => v).length === 0
-        ? <p className="muted small">No specific concerns were flagged in this check-in.</p>
+        ? <p className="muted small">{t("res_noflags")}</p>
         : <div className="flags">
             {Object.entries(r.flags).filter(([, v]) => v).map(([k]) => (
-              <span key={k} className={"flag on" + (/crisis|self_harm/.test(k) ? " crisis" : "")}>{k.replace(/_flag$/, "").replace(/_/g, " ")}</span>
+              <span key={k} className={"flag on" + (/crisis|self_harm/.test(k) ? " crisis" : "")}>{t("flag_" + k.replace(/_flag$/, ""))}</span>
             ))}
           </div>}
 
