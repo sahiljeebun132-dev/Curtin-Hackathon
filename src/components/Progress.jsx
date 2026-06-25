@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useT } from "../i18n.js";
 import { useRole } from "../role.js";
 import { journeyDays } from "../journey.js";
+import { cacheGet } from "../secure.js";
 
 const LVLC = { Low: "#1f9d57", Medium: "#c98510", High: "#e0671f", Crisis: "#d83a3a" };
 const RANK = { Crisis: 4, High: 3, Medium: 2, Low: 1 };
@@ -101,6 +102,28 @@ export default function Progress({ caseload = [], onStartCheckin }) {
       <h2>{t("progress_title")}</h2>
       <p className="muted small">{t("progress_sub")} &middot; {t("progress_role")}: <strong>{t("role_" + role)}</strong> <span className="muted">(change at the top)</span></p>
       <Journey t={t} days={days} cal={cal} />
+      <h3>Past results</h3>
+      {(() => {
+        const hist = cacheGet("history") || [];
+        if (hist.length === 0) return <p className="muted small">No check-ins yet. Do one from the Check-in tab to start your log.</p>;
+        const last = hist[hist.length - 1].score, prev = hist.length > 1 ? hist[hist.length - 2].score : null;
+        const trend = prev == null ? "This is your first recorded check-in - a brave first step."
+          : last < prev ? `Your score went down ${prev - last} since last time - that's a good direction.`
+          : last > prev ? `Your score went up ${last - prev} since last time - it may help to check in with someone.`
+          : "Your score is about the same as last time.";
+        return (<>
+          <div className="callout"><span className="small">{trend}</span></div>
+          {hist.slice(-8).reverse().map((h, i) => (
+            <div className="case-row" key={i} style={{ cursor: "default" }}>
+              <div className="case-ava" style={{ background: LVLC[h.level] || "var(--muted)" }}>{h.score}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div className="case-name">{h.level}</div>
+                <div className="tiny muted">{new Date(h.ts).toLocaleDateString()} {new Date(h.ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}{h.top ? " · " + h.top : ""}</div>
+              </div>
+            </div>
+          ))}
+        </>);
+      })()}
       {role === "guardian"
         ? <div className="callout warm" style={{ marginTop: 12 }}><span className="small"><strong>For the guardian:</strong> Your role is encouragement, not surveillance. You see only what the person has chosen to share.</span></div>
         : <div className="callout" style={{ marginTop: 12 }}><span className="small"><strong>You're doing the work.</strong> Every green day counts. You decide what to share with your guardian or social worker.</span></div>}

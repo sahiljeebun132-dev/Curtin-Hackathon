@@ -4,6 +4,7 @@ import { useRole } from "../role.js";
 import { useMeds } from "../meds.js";
 import { useIdentity } from "../identity.js";
 import { journeyDays } from "../journey.js";
+import { cacheGet } from "../secure.js";
 
 const LVLC = { Low: "#1f9d57", Medium: "#c98510", High: "#e0671f", Crisis: "#d83a3a" };
 const RANK = { Crisis: 4, High: 3, Medium: 2, Low: 1 };
@@ -13,6 +14,7 @@ function Tile({ label, value, accent }) {
 }
 
 function IdentityCard() {
+  const t = useT();
   const { pseudonym, anonId, dedupToken, setPseudonym, hashPhone, forget } = useIdentity();
   const [name, setName] = useState(pseudonym);
   const [phone, setPhone] = useState("");
@@ -21,27 +23,27 @@ function IdentityCard() {
     <div className="callout" style={{ marginBottom: 14 }}>
       {anonId ? (
         <div className="small">
-          <div>Signed in anonymously as <strong>{pseudonym || "Anonymous"}</strong></div>
-          <div className="tiny muted">Anonymous ID: {anonId}{dedupToken ? ` · token ${dedupToken.slice(0, 8)}…` : ""}</div>
+          <div>{t("id_saved_as")} <strong>{pseudonym || t("id_anonymous")}</strong></div>
+          <div className="tiny muted">{t("id_anon")}: {anonId}{dedupToken ? ` · token ${dedupToken.slice(0, 8)}…` : ""}</div>
           {!dedupToken && (
             <div style={{ marginTop: 8 }}>
               <div className="time-add">
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" placeholder="Phone (hashed, not stored)" />
-                <button className="btn soft" style={{ flex: "none" }} onClick={() => phone.trim() && hashPhone(phone)}>Hash</button>
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="tel" placeholder={t("id_phone_ph")} />
+                <button className="btn soft" style={{ flex: "none" }} onClick={() => phone.trim() && hashPhone(phone)}>{t("id_hash")}</button>
               </div>
-              <p className="tiny muted" style={{ marginTop: 4 }}>Turned into a one-way fingerprint to avoid duplicates - the number is discarded.</p>
+              <p className="tiny muted" style={{ marginTop: 4 }}>{t("id_hash_note")}</p>
             </div>
           )}
-          <button className="btn soft" style={{ marginTop: 8, padding: "6px 12px" }} onClick={forget}>Forget me / delete</button>
+          <button className="btn soft" style={{ marginTop: 8, padding: "6px 12px" }} onClick={forget}>{t("id_forget")}</button>
         </div>
       ) : (
         <div className="small">
-          <div style={{ fontWeight: 700, marginBottom: 6 }}>Save your journey (optional, no ID)</div>
+          <div style={{ fontWeight: 700, marginBottom: 6 }}>{t("id_save_title")}</div>
           <div className="time-add">
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Choose a nickname" />
-            <button className="btn soft" style={{ flex: "none" }} onClick={() => name.trim() && setPseudonym(name.trim())}>Save</button>
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("id_nick_ph")} />
+            <button className="btn soft" style={{ flex: "none" }} onClick={() => name.trim() && setPseudonym(name.trim())}>{t("id_save")}</button>
           </div>
-          <p className="tiny muted" style={{ marginTop: 6 }}>A self-chosen nickname only - no real name, no national ID. Stored on your device, deletable anytime.</p>
+          <p className="tiny muted" style={{ marginTop: 6 }}>{t("id_nick_note")}</p>
         </div>
       )}
     </div>
@@ -60,7 +62,7 @@ function PatientDash({ t, onNavigate }) {
   return (
     <section className="card">
       <div className="eyebrow">{greet}{pseudonym ? ", " + pseudonym : ""} 🌱</div>
-      <h2>Day {days + 1}</h2>
+      <h2>{t("d_day")} {days + 1}</h2>
       <p className="muted small">{days === 0 ? t("d_startstoday") : t("d_good")}</p>
       <IdentityCard />
       <div className="dash-grid">
@@ -92,8 +94,8 @@ function GuardianDash({ t, caseload, onNavigate }) {
   const { meds, alerts } = useMeds();
   const { pseudonym } = useIdentity();
   const pDays = journeyDays();
-  let lastLevel = "—"; try { lastLevel = localStorage.getItem("vela_last_level") || "—"; } catch { /* ignore */ }
-  const pName = pseudonym || "Your patient";
+  const lastLevel = cacheGet("last_level") || "—";
+  const pName = pseudonym || t("d_your_patient");
   const missed = meds.reduce((n, m) => n + Object.values(m.log).filter((v) => v === "missed").length, 0);
   const totalDoses = meds.reduce((n, m) => n + m.times.length, 0);
   const takenToday = meds.reduce((n, m) => n + Object.values(m.log).filter((v) => v === "taken").length, 0);

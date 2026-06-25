@@ -62,17 +62,21 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
     onSubmit({ answers, protective, metadata: { ...meta, substances_mentioned, clinician_symptoms } });
   }
 
+  const isSelf = meta.referrer_type === "self";
+  const qT = (id) => { if (!isSelf) return t("q_" + id); const k = "qs_" + id, v = t(k); return v === k ? t("q_" + id) : v; };
+  const pT = (id) => { if (!isSelf) return t("p_" + id); const k = "ps_" + id, v = t(k); return v === k ? t("p_" + id) : v; };
+
   function readPage() {
     let parts = [cur.title];
-    if (cur.tags) parts.push(...BEHAVIOURAL_QUESTIONS.filter((q) => cur.tags.includes(q.score) && appliesToAge(q, meta.subject_age_group)).map((q) => t("q_" + q.id)));
-    else if (cur.kind === "protective") parts.push(...PROTECTIVE_QUESTIONS.map((q) => t("p_" + q.id)));
+    if (cur.tags) parts.push(...BEHAVIOURAL_QUESTIONS.filter((q) => cur.tags.includes(q.score) && appliesToAge(q, meta.subject_age_group)).map((q) => qT(q.id)));
+    else if (cur.kind === "protective") parts.push(...PROTECTIVE_QUESTIONS.map((q) => pT(q.id)));
     speak(parts.join(". "), lang);
   }
   function renderQuestions(tags) {
     const qs = BEHAVIOURAL_QUESTIONS.filter((q) => tags.includes(q.score) && appliesToAge(q, meta.subject_age_group));
     return qs.map((q) => (
       <div className="qrow" key={q.id}>
-        <span className="qlabel">{t("q_" + q.id)}
+        <span className="qlabel">{qT(q.id)}
           {q.source && q.source !== "general" && <span className="src-tag">{q.source}</span>}
           {q.score === "crisis" && <span className="safeguard-tag">{t("sec_safety")}</span>}
         </span>
@@ -116,7 +120,7 @@ export default function Questionnaire({ onSubmit, initialMeta, subjectLabel }) {
           <p className="muted small">{t("strengths_note")}</p>
           {PROTECTIVE_QUESTIONS.map((q) => (
             <div className="qrow" key={q.id}>
-              <span className="qlabel">{t("p_" + q.id)}</span>
+              <span className="qlabel">{pT(q.id)}</span>
               <Scale value={protective[q.id] ?? null} onChange={(v) => setP(q.id, v)} labels={P_LABELS} />
             </div>
           ))}

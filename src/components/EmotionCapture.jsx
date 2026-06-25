@@ -5,9 +5,12 @@ const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/mode
 const SAMPLE_MS = 700;
 const MIN_SCORE = 0.5;
 const MIN_SAMPLES = 6;
-const RED_THRESHOLD = 0.15; // rough heuristic for "elevated" eye redness
+const RED_THRESHOLD = 0.15;
+const EAR_LOW = 0.20;
 const EMOTIONS = ["neutral", "happy", "sad", "angry", "fearful", "disgusted", "surprised"];
 let MODELS_LOADED = false;
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const earOf = (e) => (dist(e[1], e[5]) + dist(e[2], e[4])) / (2 * dist(e[0], e[3]) || 1);
 
 export default function EmotionCapture({ onComplete, onSkip }) {
   const t = useT();
@@ -18,11 +21,12 @@ export default function EmotionCapture({ onComplete, onSkip }) {
   const probSumRef = useRef(Object.fromEntries(EMOTIONS.map((e) => [e, 0])));
   const timelineRef = useRef([]);
   const confRef = useRef([]);
-  const redSumRef = useRef(0);
-  const redCountRef = useRef(0);
+  const redSumRef = useRef(0); const redCountRef = useRef(0);
+  const earSumRef = useRef(0); const earCountRef = useRef(0);
   const [state, setState] = useState("loading");
   const [errReason, setErrReason] = useState("generic");
   const [live, setLive] = useState(null);
+  const [eye, setEye] = useState(null); // {red, ear}
   const [good, setGood] = useState(0);
   const [attempt, setAttempt] = useState(0);
 
@@ -33,7 +37,6 @@ export default function EmotionCapture({ onComplete, onSkip }) {
   }
   const smoothedDominant = () => Object.entries(probSumRef.current).sort((a, b) => b[1] - a[1])[0][0];
 
-  // estimate redness over the eye landmark region (R minus average of G,B)
   function sampleRedness(video, pts) {
     try {
       const w = video.videoWidth, h = video.videoHeight;
@@ -57,7 +60,7 @@ export default function EmotionCapture({ onComplete, onSkip }) {
     (async () => {
       setState("loading"); stopCamera();
       probSumRef.current = Object.fromEntries(EMOTIONS.map((e) => [e, 0]));
-      redSumRef.current = 0; redCountRef.current = 0;
+      redSumRef.current = 0; redCountRef.current = 0; earSumRef.current = 0; earCountRef.current = 0;
       try {
         const faceapi = await import("@vladmandic/face-api");
         if (!MODELS_LOADED) {
@@ -84,9 +87,15 @@ export default function EmotionCapture({ onComplete, onSkip }) {
             setLive({ emotion: dom, confidence: det.detection.score });
             setGood((g) => g + 1);
             try {
-              const eyePts = [...det.landmarks.getLeftEye(), ...det.landmarks.getRightEye()];
-              const r = sampleRedness(videoRef.current, eyePts);
+              const le = det.landmarks.getLeftEye(), re = det.landmarks.getRightEye();
+              const rl = sampleRedness(videoRef.current, le), rr = sampleRedness(videoRef.current, re);
+              const r = rl != null && rr != null ? (rl + rr) / 2 : (rl != null ? rl : rr);
               if (r != null) { redSumRef.current += r; redCountRef.current += 1; }
+              const e = (earOf(le) + earOf(re)) / 2;
+              if (isFinite(e)) { earSumRef.current += e; earCountRef.current += 1; }
+              const avgR = redCountRef.current ? redSumRef.current / redCountRef.current : null;
+              const avgE = earCountRef.current ? earSumRef.current / earCountRef.current : null;
+              setEye({ red: avgR, ear: avgE });
             } catch { /* landmarks unavailable */ }
           }
         }, SAMPLE_MS);
@@ -106,20 +115,22 @@ export default function EmotionCapture({ onComplete, onSkip }) {
     const confs = confRef.current;
     const avgConf = confs.length ? confs.reduce((s, c) => s + c, 0) / confs.length : 0;
     const avgRed = redCountRef.current ? redSumRef.current / redCountRef.current : null;
-    const eye_redness = avgRed == null ? null : { elevated: avgRed > RED_THRESHOLD, value: Number(avgRed.toFixed(3)) };
+    const avgEar = earCountRef.current ? earSumRef.current / earCountRef.current : null;
+    const eye_check = {
+      redness: avgRed == null ? null : { elevated: avgRed > RED_THRESHOLD, value: Number(avgRed.toFixed(3)) },
+      openness: avgEar == null ? null : { value: Number(avgEar.toFixed(3)), state: avgEar < EAR_LOW ? "droopy / low" : "normal" },
+    };
     stopCamera();
-    onComplete({ dominant_emotion: dominant, face_detected: good > 0, confidence: Number(avgConf.toFixed(2)), session_duration_seconds: Math.round((timelineRef.current.length * SAMPLE_MS) / 1000), emotion_timeline: timelineRef.current.slice(-8), eye_redness });
+    onComplete({ dominant_emotion: dominant, face_detected: good > 0, confidence: Number(avgConf.toFixed(2)), session_duration_seconds: Math.round((timelineRef.current.length * SAMPLE_MS) / 1000), emotion_timeline: timelineRef.current.slice(-8), eye_redness: eye_check.redness, eye_check });
   }
-  function retry() { probSumRef.current = Object.fromEntries(EMOTIONS.map((e) => [e, 0])); timelineRef.current = []; confRef.current = []; redSumRef.current = 0; redCountRef.current = 0; setLive(null); setGood(0); setAttempt((a) => a + 1); }
+  function retry() { probSumRef.current = Object.fromEntries(EMOTIONS.map((e) => [e, 0])); timelineRef.current = []; confRef.current = []; redSumRef.current = 0; redCountRef.current = 0; earSumRef.current = 0; earCountRef.current = 0; setLive(null); setEye(null); setGood(0); setAttempt((a) => a + 1); }
   function skip() { stopCamera(); onSkip(); }
 
   const ready = good >= MIN_SAMPLES;
-  const ERR = {
-    denied: "Camera permission is blocked. Allow it from your browser's address bar, then tap Try again.",
-    busy: "Your camera is being used by another app or browser tab. Close it, then tap Try again.",
-    none: "No camera was found on this device.",
-    generic: "Couldn't start the camera.",
-  };
+  const redPct = eye && eye.red != null ? Math.min(100, Math.round((eye.red / 0.3) * 100)) : 0;
+  const redElevated = eye && eye.red != null && eye.red > RED_THRESHOLD;
+  const earState = eye && eye.ear != null ? t(eye.ear < EAR_LOW ? "ec_droopy" : "ec_open") : "—";
+  const ERR = { denied: t("err_denied"), busy: t("err_busy"), none: t("err_none"), generic: t("err_generic") };
 
   return (
     <section className="card">
@@ -127,17 +138,25 @@ export default function EmotionCapture({ onComplete, onSkip }) {
       <h2>{t("cam_title")}</h2>
       {state === "error" ? (
         <>
-          <div className="callout warm"><span className="small">{ERR[errReason]} You can also continue without it.</span></div>
-          <div className="row" style={{ marginTop: 12 }}><button className="btn" onClick={retry}>&#x21bb; Try again</button><button className="btn soft" onClick={skip}>{t("cam_skip")}</button></div>
+          <div className="callout warm"><span className="small">{ERR[errReason]} {t("err_continue")}</span></div>
+          <div className="row" style={{ marginTop: 12 }}><button className="btn" onClick={retry}>&#x21bb; {t("cam_retry")}</button><button className="btn soft" onClick={skip}>{t("cam_skip")}</button></div>
         </>
       ) : (
         <>
-          <p className="muted small">{state === "loading" ? "Loading the on-device model..." : t("cam_hint")}</p>
+          <p className="muted small">{state === "loading" ? t("ec_loading") : t("cam_hint")}</p>
           <div className="cam-wrap">
             <video ref={videoRef} muted playsInline />
             {state === "running" && (<div className="cam-pill"><span className="cam-dot" />{live ? `${live.emotion} / ${(live.confidence * 100).toFixed(0)}%` : "reading"}</div>)}
           </div>
-          {state === "running" && <p className="tiny muted" style={{ textAlign: "center" }}>{ready ? "Reading is stable - ready when you are." : `Reading… ${good}/${MIN_SAMPLES}`}</p>}
+          {state === "running" && (
+            <div className="eye-check">
+              <div className="ec-head">👁  {t("ec_title")} <span className="ec-tag">{t("ec_tag")}</span></div>
+              <div className="ec-row"><span className="ec-lbl">{t("ec_redness")}</span><div className="ec-bar"><div className="ec-fill" style={{ width: redPct + "%", background: redElevated ? "var(--crisis)" : "var(--primary)" }} /></div><span className="ec-val" style={{ color: redElevated ? "var(--crisis)" : "var(--low)" }}>{redElevated ? t("ec_elevated") : t("ec_low")}</span></div>
+              <div className="ec-row"><span className="ec-lbl">{t("ec_eyes")}</span><span className="ec-val">{earState}</span></div>
+              <div className="tiny muted" style={{ marginTop: 4 }}>{t("ec_note")}</div>
+            </div>
+          )}
+          {state === "running" && <p className="tiny muted" style={{ textAlign: "center" }}>{ready ? t("cam_stable") : `${t("cam_scanning")}… ${good}/${MIN_SAMPLES}`}</p>}
           <div className="row" style={{ marginTop: 8 }}>
             <button className="btn" onClick={finish} disabled={!ready}>{t("cam_continue")}</button>
             <button className="btn soft" onClick={skip}>{t("cam_skip")}</button>

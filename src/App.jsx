@@ -7,6 +7,7 @@ import Support from "./components/Support.jsx";
 import Progress from "./components/Progress.jsx";
 import Privacy from "./components/Privacy.jsx";
 import SosButton from "./components/SosButton.jsx";
+import InstallBanner from "./components/InstallBanner.jsx";
 import Dashboard from "./components/Dashboard.jsx";
 import Assistant from "./components/Assistant.jsx";
 import { useMeds } from "./meds.js";
@@ -88,7 +89,6 @@ function InstallButton() {
   }, []);
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent || "");
   if (installed) return null;
-  if (!prompt && !isIOS) return null;
   async function click() { if (prompt) { prompt.prompt(); await prompt.userChoice; setPrompt(null); } else setTip(true); }
   return (
     <>
@@ -164,6 +164,7 @@ export default function App() {
 
   return (
     <div className="shell">
+      <InstallBanner />
       <OfflineBadge />
       {alarm && <div className="alarm-toast">🔔 {t("meds_alarm")}: {alarm}</div>}
       <div className="topbar">

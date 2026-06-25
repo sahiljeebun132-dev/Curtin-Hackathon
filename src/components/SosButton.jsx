@@ -30,32 +30,32 @@ export default function SosButton() {
               </div>
             ))}
 
-            <h3>Trusted contact</h3>
+            <h3>{t("sos_trusted")}</h3>
             {trustedPhone ? (
               <>
                 <div className="sos-line">
-                  <div><strong>{trustedName || "Trusted contact"}</strong><div className="muted small">{trustedPhone}</div></div>
+                  <div><strong>{trustedName || t("sos_trusted")}</strong><div className="muted small">{trustedPhone}</div></div>
                   <div style={{ display: "flex", gap: 6 }}>
-                    <a href={`sms:${clean(trustedPhone)}?body=${msg}`}><button className="call-btn" style={{ background: "var(--primary)" }}>Text</button></a>
+                    <a href={`sms:${clean(trustedPhone)}?body=${msg}`}><button className="call-btn" style={{ background: "var(--primary)" }}>{t("sos_text")}</button></a>
                     <a href={`tel:${clean(trustedPhone)}`}><button className="call-btn">Call</button></a>
                   </div>
                 </div>
-                <p className="tiny muted" style={{ textAlign: "right" }}><span onClick={clearTrusted} style={{ cursor: "pointer", textDecoration: "underline" }}>change</span></p>
+                <p className="tiny muted" style={{ textAlign: "right" }}><span onClick={clearTrusted} style={{ cursor: "pointer", textDecoration: "underline" }}>{t("sos_change")}</span></p>
               </>
             ) : (
               <div className="callout">
-                <div className="small" style={{ fontWeight: 700, marginBottom: 6 }}>Add a family member or close person</div>
+                <div className="small" style={{ fontWeight: 700, marginBottom: 6 }}>{t("sos_add_trusted")}</div>
                 <div className="grid2">
-                  <input value={tName} onChange={(e) => setTName(e.target.value)} placeholder="Name (e.g. Mum)" />
-                  <input value={tPhone} onChange={(e) => setTPhone(e.target.value)} inputMode="tel" placeholder="Phone number" />
+                  <input value={tName} onChange={(e) => setTName(e.target.value)} placeholder={t("sos_name_ph")} />
+                  <input value={tPhone} onChange={(e) => setTPhone(e.target.value)} inputMode="tel" placeholder={t("sos_phone_ph")} />
                 </div>
-                <button className="btn full" style={{ marginTop: 8 }} disabled={!tPhone.trim()} onClick={() => setTrusted(tName.trim(), tPhone.trim())}>Save trusted contact</button>
-                <p className="tiny muted" style={{ marginTop: 4 }}>Stored on your device only. They'll be one tap away in an emergency.</p>
+                <button className="btn full" style={{ marginTop: 8 }} disabled={!tPhone.trim()} onClick={() => setTrusted(tName.trim(), tPhone.trim())}>{t("sos_save_trusted")}</button>
+                <p className="tiny muted" style={{ marginTop: 4 }}>{t("sos_trusted_note")}</p>
               </div>
             )}
 
             <p className="tiny muted" style={{ textAlign: "center", marginTop: 12 }}>{t("sos_stay")}</p>
-            <button className="btn soft full" style={{ marginTop: 8 }} onClick={() => setOpen(false)}>Close</button>
+            <button className="btn soft full" style={{ marginTop: 8 }} onClick={() => setOpen(false)}>{t("sos_close")}</button>
           </div>
         </div>
       )}

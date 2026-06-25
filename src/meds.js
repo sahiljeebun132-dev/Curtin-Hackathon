@@ -3,16 +3,15 @@
 // refreshes. Nothing leaves the device. A real product would sync via a
 // secure backend across devices.
 import { createContext, useContext, useState, useRef, useEffect, useCallback, createElement } from "react";
+import { cacheGet, cacheSet } from "./secure.js";
 
 const KEY = "vela_meds";
 let _id = 1;
 const SEED = [{ id: 1, name: "Methadone", dose: "10 mg", instructions: "With water, morning and night", times: ["08:00", "20:00"], log: {}, addedBy: "guardian" }];
 
 function loadMeds() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) { const arr = JSON.parse(raw); if (Array.isArray(arr)) { _id = Math.max(1, ...arr.map((m) => Number(m.id) || 0)) + 1; return arr; } }
-  } catch { /* ignore */ }
+  const arr = cacheGet("meds");
+  if (Array.isArray(arr) && arr.length) { _id = Math.max(1, ...arr.map((m) => Number(m.id) || 0)) + 1; return arr; }
   _id = 2; return SEED;
 }
 
@@ -36,7 +35,7 @@ export function MedsProvider({ children }) {
   const firedRef = useRef({});
   const startMin = useRef(new Date().getHours() * 60 + new Date().getMinutes());
 
-  useEffect(() => { try { localStorage.setItem(KEY, JSON.stringify(meds)); } catch { /* ignore */ } }, [meds]);
+  useEffect(() => { cacheSet("meds", meds); }, [meds]);
   useEffect(() => { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); }, []);
 
   const addMed = useCallback((m) => setMeds((s) => [...s, { id: _id++, log: {}, ...m }]), []);

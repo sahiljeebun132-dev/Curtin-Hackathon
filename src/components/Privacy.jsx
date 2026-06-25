@@ -1,7 +1,8 @@
 import { useT } from "../i18n.js";
+import { cacheClearAll } from "../secure.js";
 
 function clearAll() {
-  try { ["vela_meds", "vela_identity", "vela_link_code", "vela_linked", "vela_journey_start", "vela_trusted"].forEach((k) => localStorage.removeItem(k)); } catch { /* ignore */ }
+  cacheClearAll();
   try { location.reload(); } catch { /* ignore */ }
 }
 
@@ -18,7 +19,7 @@ export default function Privacy() {
 
       <h3>How a real deployment would protect data</h3>
       <div className="callout"><span className="small"><strong>Consent first.</strong> Explicit, informed, withdrawable consent before any data is collected - especially for minors, with guardian involvement.</span></div>
-      <div className="callout"><span className="small"><strong>Encryption everywhere.</strong> TLS in transit and AES-256 at rest. Biometric templates stored as one-way hashes, never raw images.</span></div>
+      <div className="callout"><span className="small"><strong>Encryption everywhere.</strong> In this build, all on-device data is encrypted at rest with <strong>AES-256-GCM</strong> using a non-extractable key held in IndexedDB (the raw key never touches JavaScript). Phone numbers are stored only as one-way SHA-256 hashes. A production server would add TLS in transit and encrypted, access-controlled storage.</span></div>
       <div className="callout"><span className="small"><strong>Least privilege.</strong> Role-based access (patient, guardian, social worker, clinician) so each person sees only what they must. Full audit logging.</span></div>
       <div className="callout"><span className="small"><strong>Data minimisation.</strong> Collect the least needed, delete on a schedule, and keep identity data separate from health data.</span></div>
       <div className="callout"><span className="small"><strong>Compliance.</strong> Aligned to the Mauritius Data Protection Act 2017 and GDPR principles. No data sold, no third-party sharing without explicit consent.</span></div>

@@ -7,6 +7,7 @@ import Questionnaire from "./Questionnaire.jsx";
 import AssessmentResult from "./AssessmentResult.jsx";
 import { runAriaAssessment } from "../aria/engine.js";
 import { attachSummaries } from "../aria/summaries.js";
+import { cacheSet, cacheGet } from "../secure.js";
 
 const STEPS = ["capture", "questionnaire", "result"];
 
@@ -23,6 +24,7 @@ export default function AssessmentFlow({ seed, onResult, savedResult, onSaveResu
   const t = useT();
   const { role } = useRole();
   const { lang } = useLang();
+  const defaultRef = role === "guardian" ? "family" : role === "social" ? "counsellor" : "self";
   // a seeded (social-worker) check-in is ABOUT another person, so the camera
   // (which reads whoever is in front of the screen) is skipped.
   const [step, setStep] = useState(seed ? "questionnaire" : (savedResult ? "result" : "capture"));
@@ -36,7 +38,12 @@ export default function AssessmentFlow({ seed, onResult, savedResult, onSaveResu
     const withSummaries = await attachSummaries(assessment, null, { self, lang });
     withSummaries._clinician = formData.metadata?.clinician_symptoms || [];
     withSummaries._eyeRedness = facial?.eye_redness || null;
-    if (self) { try { localStorage.setItem("vela_last_level", withSummaries.risk_profile.overall_risk_level); } catch { /* ignore */ } }
+    withSummaries._eyeCheck = facial?.eye_check || null;
+    if (self) {
+      cacheSet("last_level", withSummaries.risk_profile.overall_risk_level);
+      const hist = cacheGet("history") || [];
+      cacheSet("history", [...hist, { ts: Date.now(), level: withSummaries.risk_profile.overall_risk_level, score: withSummaries.risk_profile.risk_score, top: withSummaries.explainability.top_contributing_factor }].slice(-30));
+    }
     setTimeout(() => {
       setResult(withSummaries);
       setStep("result");
@@ -61,7 +68,7 @@ export default function AssessmentFlow({ seed, onResult, savedResult, onSaveResu
             onSkip={() => { setFacial({ face_detected: false, dominant_emotion: "n/a", confidence: 0, emotion_timeline: [] }); setStep("questionnaire"); }}
           />
         )}
-        {step === "questionnaire" && <Questionnaire onSubmit={handleQuestionnaire} initialMeta={seed?.meta} subjectLabel={seed?.label} />}
+        {step === "questionnaire" && <Questionnaire onSubmit={handleQuestionnaire} initialMeta={seed?.meta || { referrer_type: defaultRef }} subjectLabel={seed?.label} />}
         {step === "processing" && (
           <section className="card processing">
             <div className="breathe" aria-hidden="true"><div /></div>

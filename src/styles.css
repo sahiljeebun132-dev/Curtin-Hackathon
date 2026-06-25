@@ -286,3 +286,21 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--p
 .install-btn { border: 1.5px solid var(--primary); background: var(--primary-tint); color: var(--primary-700); font: inherit; font-weight: 700; font-size: 12.5px; padding: 6px 12px; border-radius: 999px; cursor: pointer; box-shadow: var(--shadow-sm); }
 .install-btn:hover { background: var(--primary); color: #fff; }
 .offline-badge { background: #2a2110; color: #f4c869; border: 1px solid #5a4a1f; border-radius: 10px; padding: 8px 12px; font-size: 12.5px; font-weight: 700; text-align: center; margin-bottom: 10px; }
+
+/* install prompt banner (on entry) */
+.install-banner { display: flex; align-items: center; gap: 12px; background: linear-gradient(135deg, var(--primary), var(--primary-600)); color: #fff; border-radius: 14px; padding: 11px 13px; margin-bottom: 12px; box-shadow: 0 10px 24px rgba(14,148,136,.28); animation: rise .4s cubic-bezier(.22,1,.36,1) both; }
+.ib-mark { width: 34px; height: 34px; border-radius: 10px; background: rgba(255,255,255,.18); display: grid; place-items: center; font-size: 17px; flex: none; }
+.ib-title { font-family: var(--font-head); font-weight: 800; font-size: 14.5px; }
+.ib-sub { font-size: 12px; color: #E6F6F3; }
+.ib-btn { background: #fff; color: var(--primary-700); border: none; font: inherit; font-weight: 800; font-size: 13px; padding: 8px 16px; border-radius: 999px; cursor: pointer; flex: none; }
+.ib-x { background: transparent; border: none; color: #CFE9E5; font-size: 22px; line-height: 1; cursor: pointer; padding: 0 4px; flex: none; }
+
+/* surface eye check panel */
+.eye-check { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 4px auto 6px; max-width: 380px; }
+.ec-head { font-family: var(--font-head); font-weight: 700; font-size: 14px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+.ec-tag { font-size: 10px; font-weight: 700; color: var(--primary-700); background: var(--primary-tint); border-radius: 999px; padding: 2px 8px; }
+.ec-row { display: grid; grid-template-columns: 64px 1fr auto; align-items: center; gap: 10px; margin-top: 8px; }
+.ec-lbl { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); }
+.ec-bar { height: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.ec-fill { height: 100%; border-radius: 999px; transition: width .4s ease; }
+.ec-val { font-size: 12.5px; font-weight: 800; text-align: right; }

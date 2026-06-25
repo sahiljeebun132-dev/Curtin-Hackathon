@@ -84,8 +84,8 @@ export default function AssessmentResult({ result, onRestart }) {
       </div>
       <div className="callout"><span className="small"><strong>{t("res_conversation")}</strong> {r.intervention.stigma_sensitive_note}</span></div>
 
-      {r._eyeRedness?.elevated && (
-        <div className="callout warm"><span className="small"><strong>Observation:</strong> eye redness appeared elevated on camera. This has many everyday causes (tiredness, screens, allergies, crying) and is <strong>not</strong> a sign of drug use on its own - note it for a clinician to consider, never a conclusion. It does not change the score.</span></div>
+      {r._eyeCheck && (r._eyeCheck.redness || r._eyeCheck.openness) && (
+        <div className="callout warm"><span className="small"><strong>Eye check (observation):</strong> redness {r._eyeCheck.redness?.elevated ? "appeared elevated" : "looked normal"}{r._eyeCheck.openness ? `, eyes ${r._eyeCheck.openness.state}` : ""}. This is a surface read of the visible eye (many everyday causes - tiredness, screens, allergies) for a clinician to consider - <strong>not a retina scan or diagnosis</strong>, and it does not change the score.</span></div>
       )}
       {clinician.length > 0 && (
         <>

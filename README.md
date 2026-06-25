@@ -93,10 +93,9 @@ npm run test:engine  # run the deterministic engine tests (15 checks)
 ### As a Patient
 1. **Home** — see your day counter (starts at **Day 1**), today's medication, and an optional **nickname** (anonymous ID; "Forget me" deletes it). You can optionally hash a phone number for de-duplication — the number is never stored.
 2. **Check-in** — Step 1 is an optional **camera read** (tap *Continue* or *Skip the camera*). Step 2 is the **questionnaire** (6–7 short pages with Back/Next and a 🔊 read-aloud button). You get a calm, plain-language **result** with a recommended next step. Tap **🖨 Print / Save PDF** to save it, or **🔊 Read aloud**.
-3. **Results** — your most recent check-in is saved here automatically. Leave the page, browse **Support** for other numbers, or even close the app — your latest result is still waiting under this tab, so you never have to redo the test to see it again. It's stored **encrypted on your device only**, and you can **clear** it any time.
-4. **Medication** — your guardian sets the schedule; you get reminders that **ring** at each dose time (sound + notification) on any tab. Tap **✓ Taken** or **✗ Missed**.
-5. **Link to a guardian** — on Medication, enter the code your guardian gives you to pair (so their schedule reaches you).
-6. **SOS** (floating red button, always visible) — one tap to verified crisis lines, and to your **trusted contact** (add a family member/close person once; then Text or Call them instantly).
+3. **Medication** — your guardian sets the schedule; you get reminders that **ring** at each dose time (sound + notification) on any tab. Tap **✓ Taken** or **✗ Missed**.
+4. **Link to a guardian** — on Medication, enter the code your guardian gives you to pair (so their schedule reaches you).
+5. **SOS** (floating red button, always visible) — one tap to verified crisis lines, and to your **trusted contact** (add a family member/close person once; then Text or Call them instantly).
 
 ### As a Guardian
 1. Enter the staff code, then **Medication**: tap **Generate link code** and share it with the patient's phone.
@@ -120,7 +119,6 @@ The **Privacy** tab explains what is/isn't collected, documents the encryption, 
 - **Role-based portal** with staff verification; patients anonymous.
 - **Validated, age-adaptive questionnaire** (CRAFFT / DAST-10 / AUDIT-C) with read-aloud.
 - **Deterministic ARIA engine** → printable result + plain-language & Kreol summaries.
-- **Results tab**: the patient's latest check-in is saved (encrypted, on-device) and reopenable any time — navigating away, switching tabs, or closing the app no longer loses it or forces a redo.
 - **Medication**: guardian-set schedule, device pairing by code, ringing reminders, missed-dose alerts, 7-day adherence chart.
 - **SOS** with verified crisis lines + a savable **trusted contact** (Text/Call).
 - **Support**: real Mauritian organisations + an **anonymous** aggregate area map (never individuals).
@@ -153,7 +151,7 @@ public/      manifest.webmanifest, sw.js, icon.svg      (PWA)
 src/
   aria/      engine.js, constants.js, referrals.js, summaries.js, *.test/verify
   components/ Dashboard, AssessmentFlow, EmotionCapture, Questionnaire,
-              AssessmentResult, Results, Medication, Support, Progress, Privacy,
+              AssessmentResult, Medication, Support, Progress, Privacy,
               Assistant, SosButton, SymptomChecklist
   data/      supportGroups, zones (aggregate), symptoms, caseload
   i18n*.js   EN / FR / Kreol dictionaries
@@ -183,7 +181,6 @@ git add -A && git commit -m "update" && git push
 - **Map is blank** — the map needs internet (OpenStreetMap tiles); the rest of the app still works offline.
 - **Reminders don't ring** — allow notifications when prompted; reminders run while the app is open (a production build would use push for background delivery).
 - **Staff views ask for a code** — that's intended; demo code is **`VELA-STAFF`**.
-- **My result disappeared after I clicked away** — it no longer does. Your latest check-in is saved under the **Results** tab (encrypted, on-device) and stays there until you run a new check-in or clear it, so you can browse Support for other numbers and come back without redoing the test.
 
 ---
 

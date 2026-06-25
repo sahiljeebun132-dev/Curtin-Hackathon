@@ -1,6 +1,7 @@
 // Dashboard label translations (merged by useT, English fallback).
 export const D_DICT = {
   english: {
+    d_day: "Day", d_your_patient: "Your patient", id_saved_as: "Signed in anonymously as", id_anon: "Anonymous ID", id_anonymous: "Anonymous", id_phone_ph: "Phone (hashed, not stored)", id_hash: "Hash", id_hash_note: "Turned into a one-way fingerprint to avoid duplicates - the number is discarded.", id_forget: "Forget me / delete", id_save_title: "Save your journey (optional, no ID)", id_nick_ph: "Choose a nickname", id_save: "Save", id_nick_note: "A self-chosen nickname only - no real name, no national ID. Stored on your device, deletable anytime.",
     lvl_low: "Low concern", lvl_medium: "Worth a chat", lvl_high: "Priority support", lvl_crisis: "Immediate care", act_monitor: "Monitor", act_counsellor: "Counsellor session", act_ngo: "NGO referral", act_crisis: "Crisis intervention",
     nav_home: "Home", nav_assistant: "Assistant", d_hi: "Welcome back", d_morning: "Good morning", d_afternoon: "Good afternoon", d_evening: "Good evening", d_startstoday: "Your journey starts today - every day counts.", d_good: "You're doing well - one day at a time.",
     d_meds_today: "Today's medication", d_next_dose: "Next dose", d_checkin: "Start a check-in",
@@ -12,6 +13,7 @@ export const D_DICT = {
     d_open_caseload: "Open full caseload", d_risk: "Risk",
   },
   french: {
+    d_day: "Jour", d_your_patient: "Votre patient", id_saved_as: "Connecte anonymement en tant que", id_anon: "ID anonyme", id_anonymous: "Anonyme", id_phone_ph: "Telephone (hache, non stocke)", id_hash: "Hacher", id_hash_note: "Transforme en empreinte a sens unique pour eviter les doublons - le numero est supprime.", id_forget: "M oublier / supprimer", id_save_title: "Sauvegarder votre parcours (optionnel, sans ID)", id_nick_ph: "Choisissez un surnom", id_save: "Enregistrer", id_nick_note: "Un surnom choisi par vous - pas de vrai nom, pas de carte d identite. Stocke sur votre appareil, supprimable a tout moment.",
     lvl_low: "Faible inquietude", lvl_medium: "A surveiller", lvl_high: "Soutien prioritaire", lvl_crisis: "Soins immediats", act_monitor: "Surveiller", act_counsellor: "Seance de conseil", act_ngo: "Orientation ONG", act_crisis: "Intervention de crise",
     nav_home: "Accueil", nav_assistant: "Assistant", d_hi: "Bon retour", d_morning: "Bonjour", d_afternoon: "Bon apres-midi", d_evening: "Bonsoir", d_startstoday: "Votre parcours commence aujourd'hui - chaque jour compte.", d_good: "Vous faites du bon travail - un jour a la fois.",
     d_meds_today: "Medicaments du jour", d_next_dose: "Prochaine prise", d_checkin: "Commencer un bilan",
@@ -23,6 +25,7 @@ export const D_DICT = {
     d_open_caseload: "Ouvrir le suivi complet", d_risk: "Risque",
   },
   creole: {
+    d_day: "Zour", d_your_patient: "To pasian", id_saved_as: "Konekte anonim kouma", id_anon: "ID anonim", id_anonymous: "Anonim", id_phone_ph: "Telefonn (hash, pa garde)", id_hash: "Hash", id_hash_note: "Transforme an enn anprint inik pou evit bann douborn - nimero efase.", id_forget: "Bliye mwa / efase", id_save_title: "Sov to parkour (opsionel, san ID)", id_nick_ph: "Swazir enn ti non", id_save: "Sov", id_nick_note: "Zis enn ti non ki to swazir - pa vre non, pa kart idantite. Garde lor to aparey, efasab ninport ki ler.",
     lvl_low: "Pe risk", lvl_medium: "Bizin koze", lvl_high: "Sipor priorite", lvl_crisis: "Swin deswit", act_monitor: "Swiv", act_counsellor: "Sesion konsey", act_ngo: "Referans ONG", act_crisis: "Entervansion kriz",
     nav_home: "Lakey", nav_assistant: "Asistan", d_hi: "Bon retour", d_morning: "Bonzour", d_afternoon: "Bon apremidi", d_evening: "Bonswar", d_startstoday: "To parkour koumanse zordi - sak zour konte.", d_morning: "Bonjour", d_afternoon: "Bon apres-midi", d_evening: "Bonsoir", d_startstoday: "Votre parcours commence aujourd'hui - chaque jour compte.", d_good: "To pe fer bien - enn zour a lafwa.",
     d_meds_today: "Medikaman zordi", d_next_dose: "Prosin doz", d_checkin: "Komans enn bilan",

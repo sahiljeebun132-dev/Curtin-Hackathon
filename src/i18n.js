@@ -6,6 +6,8 @@ import { createContext, useContext, useState, createElement } from "react";
 import { Q_DICT } from "./i18n_q.js";
 import { D_DICT } from "./i18n_d.js";
 import { Q2_DICT } from "./i18n_q2.js";
+import { X_DICT } from "./i18n_x.js";
+import { QS_DICT } from "./i18n_qs.js";
 
 export const LANGS = { english: "English", french: "Francais", creole: "Kreol" };
 
@@ -36,7 +38,7 @@ export const DICT = {
     processing_title: "Taking a careful look...", processing_sub: "Weighing what was shared, gently and without judgement.",
     res_saying: "What this is saying", res_step: "A recommended next step",
     res_ready: "How ready they may be", res_signals: "The signals behind this",
-    res_flags: "Flags", res_trust: "Why you can trust this number", res_new: "Start a new check-in",
+    res_flags: "Flags", res_trust: "Why this score", res_new: "Start a new check-in",
     fasttrack: "Fast-track: priority professional review recommended",
     meds_title: "Medication & reminders", meds_sub: "Gentle reminders for treatment. Nothing here is shared without consent.",
     meds_add: "Add a medication", meds_name: "Medicine name", meds_dose: "Dose", meds_times: "Times (comma separated, e.g. 08:00, 20:00)",
@@ -75,7 +77,7 @@ export const DICT = {
     processing_title: "Un examen attentif...", processing_sub: "Nous pesons ce qui a ete partage, avec douceur et sans jugement.",
     res_saying: "Ce que cela indique", res_step: "Prochaine etape recommandee",
     res_ready: "Niveau de preparation", res_signals: "Les signaux derriere ceci",
-    res_flags: "Indicateurs", res_trust: "Pourquoi ce chiffre est fiable", res_new: "Nouveau bilan",
+    res_flags: "Indicateurs", res_trust: "Pourquoi ce score", res_new: "Nouveau bilan",
     fasttrack: "Voie prioritaire: revue professionnelle recommandee",
     meds_title: "Medicaments & rappels", meds_sub: "Des rappels doux pour le traitement. Rien n'est partage sans consentement.",
     meds_add: "Ajouter un medicament", meds_name: "Nom du medicament", meds_dose: "Dose", meds_times: "Heures (separees par virgule, ex. 08:00, 20:00)",
@@ -114,7 +116,7 @@ export const DICT = {
     processing_title: "Pe get sa byen...", processing_sub: "Pe peze seki finn partaze, avek douser ek san zizman.",
     res_saying: "Seki sa pe dir", res_step: "Prosin pa rekomande",
     res_ready: "Pare ziska ki pwen", res_signals: "Bann siyal deryer sa",
-    res_flags: "Bann siyn", res_trust: "Kifer to kapav fer konfians sa", res_new: "Nouvo bilan",
+    res_flags: "Bann siyn", res_trust: "Kifer sa skor la", res_new: "Nouvo bilan",
     fasttrack: "Vwa priorite: revi profesionel rekomande",
     meds_title: "Medikaman & rapel", meds_sub: "Bann rapel dou pou tretman. Nanye partaze san konsantman.",
     meds_add: "Azout enn medikaman", meds_name: "Non medikaman", meds_dose: "Doz", meds_times: "Ler (separe par virgil, ex. 08:00, 20:00)",
@@ -137,5 +139,5 @@ export function LangProvider({ children }) {
 export function useLang() { return useContext(LangCtx); }
 export function useT() {
   const { lang } = useContext(LangCtx);
-  return (k) => DICT[lang]?.[k] ?? Q_DICT[lang]?.[k] ?? Q2_DICT[lang]?.[k] ?? D_DICT[lang]?.[k] ?? DICT.english[k] ?? Q_DICT.english[k] ?? Q2_DICT.english[k] ?? D_DICT.english[k] ?? k;
+  return (k) => DICT[lang]?.[k] ?? Q_DICT[lang]?.[k] ?? Q2_DICT[lang]?.[k] ?? X_DICT[lang]?.[k] ?? QS_DICT[lang]?.[k] ?? D_DICT[lang]?.[k] ?? DICT.english[k] ?? Q_DICT.english[k] ?? Q2_DICT.english[k] ?? X_DICT.english[k] ?? QS_DICT.english[k] ?? D_DICT.english[k] ?? k;
 }
